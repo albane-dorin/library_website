@@ -1,0 +1,43 @@
+<html lang="eng">
+<head>
+    <meta charset="utf-8">
+    <title> Library - Home page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home_page.css') }}">
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="profil-section">
+            {% if user %}
+                <div>{{ user.username }}</div>
+            {% else %}
+                <p>You can <a href="/connexion"> Log in here.</a></p>
+                <p>No account? <a href="/inscription">Sign up here.</a></p>
+            {% endif %}
+        </div>
+        <div class="link-section">
+            <div class="side-search">
+                <p class="section-title"><a href=""> Research page </a> </p>
+                <p>Common research:</p>
+                <p><a>Best score</a></p>
+                <p><a>New books</a></p>
+                <p><a class="quick-search"> Romance</a></p>
+                <p><a>Fantasy</a></p>
+                <a></a>
+            </div>
+            <div class="">
+                <p class="section-title">Your profil:</p>
+                <p><a>Your books</a></p>
+                <p><a>About</a></p>
+            </div>
+        </div>
+    </div>
+    <div class="main">
+        <div class="search_bar">
+            <form> <input type="text" placeholder="Enter a title or an author name"></form>
+        </div>
+
+    </div>
+</body>
+
+</html>

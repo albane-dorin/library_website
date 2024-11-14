@@ -1,0 +1,62 @@
+body{
+    margin: 0;
+    background-color: lightgrey;
+    display: flex;
+}
+
+
+.sidebar{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 18%;
+    min-width: 15em;
+    background-color: #dca27a;
+}
+
+.section-title{
+    font-size: 20px;
+    padding-top: 2%;
+}
+
+.profil-section{
+    height: 10%;
+    background-color: #c58f65;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.profil-section > p{
+    margin: 0.2em;
+}
+
+.link-section{
+    padding-left: 1.5em;
+}
+
+a{
+    color: inherit;
+    text-decoration: inherit;
+}
+
+.main{
+    flex-grow: 1;
+}
+
+.search_bar{
+    margin: 1.5em;
+}
+
+input{
+    width: 75%;
+    height: 3em;
+    border: 0;
+    border-radius:20px;
+    padding-left: 15px;
+}
+
+input:focus{
+    outline-width: 0;
+}
