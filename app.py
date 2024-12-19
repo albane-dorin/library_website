@@ -17,9 +17,18 @@ with app.test_request_context(): # (2) bloc exécuté à l'initialisation de Fla
  database.init_database()
 
 
+
 @app.route('/')
-def hello_world():  # put application's code here
-    return flask.render_template('home.html.jinja2')
+def home():  # put application's code here
+    recents = database.db.session.query(database.Book).order_by(database.Book.date.desc())[:50]
+    best = database.db.session.query(database.Book).order_by(database.Book.grade.desc())[:50]
+    r_author = {}
+    b_author = {}
+    for b in recents:
+        r_author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
+    for b in best:
+        b_author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
+    return flask.render_template('home.html.jinja2', recents=recents, r_author =r_author , best=best, b_author=b_author)
 
 @app.route('/connexion')
 def connexion():

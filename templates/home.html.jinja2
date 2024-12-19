@@ -1,8 +1,10 @@
 <html lang="eng">
 <head>
     <meta charset="utf-8">
-    <title> Library - Home page</title>
+    {% block link %}
+    <title> BookHaven - Home page</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home_page.css') }}">
+    {% endblock %}
 </head>
 
 <body>
@@ -17,7 +19,7 @@
         </div>
         <div class="link-section">
             <div class="side-search">
-                <p class="section-title"><a href=""> Research page </a> </p>
+                <p class="section-title"><a href="{{ url_for('home') }}"> Home page </a> </p>
                 <p>Common research:</p>
                 <p><a>Best score</a></p>
                 <p><a>New books</a></p>
@@ -25,19 +27,71 @@
                 <p><a>Fantasy</a></p>
                 <a></a>
             </div>
+            {% if user %}
             <div class="">
                 <p class="section-title">Your profil:</p>
                 <p><a>Your books</a></p>
                 <p><a>About</a></p>
             </div>
+            {% endif %}
         </div>
     </div>
     <div class="main">
         <div class="search_bar">
-            <form> <input type="text" placeholder="Enter a title or an author name"></form>
+            <form action="{{ url_for("connexion") }}" method="post"> <input type="search" placeholder="Enter a title"></form>
         </div>
+        {% block main %}
+        <div class="content">
+            <div class="recent">
+                <div class="section-title">
+                    Most recent books
+                </div>
+                <div class="books_list">
+                    {% for book in recents %}
+                        <div class="books" >
+                            <img src="{{ book.img_path }}">
+                            <a href="{{ url_for('close_up', book_id=book.id) }}">
+                                <p>
+                                    {% if book.title|length>30 %}
+                                    {{ book.title[:30] }}...
+                                    {% else %}
+                                    {{ book.title }}
+                                    {% endif %}
+                                </p>
+                                <p>{{ r_author[book.author_id][0] }}</p>
+                            </a>
+                            <p> {{ book.date.day }}/{{ book.date.month }}/{{ book.date.year }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
 
+            </div>
+            <div class="best">
+                <div class="section-title">
+                    Most popular books
+                </div>
+                <div class="books_list">
+                    {% for book in best %}
+                        <div class="books">
+                            <img src="{{ book.img_path }}">
+                            <a href="{{ url_for('close_up', book_id=book.id) }}">
+                                {% if book.title|length>30 %}
+                                <p>{{ book.title[:30] }}...</p>
+                                {% else %}
+                                <p>{{ book.title }}</p>
+                                {% endif %}
+                                <p> {{ b_author[book.author_id][0] }}</p>
+                            </a>
+                            <p> {{ book.date.day }}/{{ book.date.month }}/{{ book.date.year }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </div>
+ {% endblock %}
     </div>
+
 </body>
 
 </html>

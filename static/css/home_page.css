@@ -39,6 +39,7 @@ body{
 a{
     color: inherit;
     text-decoration: inherit;
+    cursor: pointer;
 }
 
 .main{
@@ -54,9 +55,54 @@ input{
     height: 3em;
     border: 0;
     border-radius:20px;
-    padding-left: 15px;
+    padding: 0px 15px;
 }
 
 input:focus{
     outline-width: 0;
 }
+
+.main{
+    overflow: auto;
+}
+
+.content{
+    overflow: auto;
+    padding-left: 3em;
+}
+
+.books_list{
+    display: flex;
+    overflow: hidden;
+    margin-top: 2em;
+    height: fit-content;
+
+}
+
+.books{
+    width: 25%;
+    margin-right: 2em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.books>img{
+    padding: 0em 3em;
+}
+
+
+.books>a{
+    text-align: center;
+    text-decoration: underline;
+    margin: 15px 0 0 0;
+}
+.books>a>p{
+    margin: 0;
+}
+
+.clickable{
+    cursor: pointer;
+}
+
