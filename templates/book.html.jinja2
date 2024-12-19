@@ -1,0 +1,31 @@
+{% extends 'home.html.jinja2' %}
+
+{% block link %}
+    <title>BookHaven - {{ book.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='/css/book.css') }}">
+{% endblock %}
+
+{% block main %}
+    <a class="return" href="javascript:window.history.back();"><img src="{{ url_for('static', filename='/img/return.png') }}"> </a>
+    <div class="content">
+        <img src="{{ book.img_path }}">
+        <div class="main">
+            <p>{{ book.title }}</p>
+            <p> {{ book.author_id }}</p>
+            {% if book.date!=None %}
+            <p> Published {{ book.date.strftime("%B") }} {{ book.date.day }}, {{ book.date.year }}</p>
+            {% else %}
+            <p>Date not specified</p>
+            {% endif %}
+            <div>{{ book.synopsis[:500] }}...</div>
+        </div>
+    </div>
+    <div class="comments">
+        <p>{{ book.grade }}</p>
+        {% if comments %}
+
+        {% else %}
+            <p> No comments yet</p>
+        {% endif %}
+    </div>
+{% endblock %}

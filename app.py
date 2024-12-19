@@ -118,6 +118,11 @@ def inscription():
 
         return redirect(url_for('home', user_id=user.id))
 
+@app.route('/close-up/<int:book_id>', methods=["GET", "POST"])
+def close_up(book_id):
+    book = database.db.session.query(database.Book).filter(database.Book.id == book_id).first()
+    return flask.render_template("book.html.jinja2", book=book)
+
 
 
 if __name__ == '__main__':
