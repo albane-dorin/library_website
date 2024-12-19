@@ -1,0 +1,50 @@
+body{
+    margin: 0;
+    background-color: lightgrey;
+    display: flex;
+}
+
+.wrap{
+    height: 80vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-self: center;
+}
+
+.main{
+    display: flex;
+    flex-direction: column;
+    background-color: #e7a878;
+    align-self: start;
+    min-height: 40%;
+    height: fit-content;
+    width: 40%;
+    border-radius: 20px;
+    align-items: center;
+    justify-content: space-around;
+    padding: 1em;
+
+}
+
+form{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 70%;
+}
+
+input{
+    margin-bottom: 3%;
+}
+
+p{
+    margin: 0;
+}
+.home{
+    align-self: end;
+}
+
+img{
+    height: 50px;
+}

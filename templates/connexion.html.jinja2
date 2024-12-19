@@ -1,0 +1,47 @@
+<html lang="eng">
+<head>
+    {% block title %}
+    <title> BookHaven - Log in </title>
+    {% endblock %}
+    {% block link %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/connection.css') }}">
+    {% endblock %}
+</head>
+<body>
+    <div class="wrap">
+        <div class="main">
+        <a class='home' href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='img/home-button.png') }}">
+                </a>
+            {% block form %}
+
+
+                <form class="formulaire" action="{{ url_for("connexion") }}" method="post">
+
+                    <label for="username">Enter your username :</label>
+                       <input type="text" id="username" name="username" value="" required>
+                    <label for="mdp">Enter your password :</label>
+                       <input type="password" id="mdp" name="password" value="" required>
+
+
+                    <p><input type="submit"></p>
+
+                </form>
+
+                {% endblock %}
+
+                {% if error %}
+
+                    <p class="error"> Error : {{ error[0] }} </p>
+
+                {% endif %}
+
+            {% block switch %}
+            <a href="{{ url_for("inscription") }}">
+                <p>No account? Sign Up here</p>
+            </a>
+            {% endblock %}
+        </div>
+    </div>
+</body>
+

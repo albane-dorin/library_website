@@ -1,0 +1,28 @@
+{% extends "connexion.html.jinja2" %}
+
+{% block title %}
+    <title> BookHaven - Sign up </title>
+
+{% block form %}
+
+    <form class="formulaire" action="{{ url_for("inscription") }}" method="post">
+
+        <label for="name"> Username :</label>
+            <input type="text" id="name" name="username" value="" required>
+         <label for="email">Email :</label>
+            <input type="email" id="email" name="email" placeholder="ex: name.surname@thing.com" value="" required>
+        <label for="mdp">Password :</label>
+            <input type="password" id="mdp" name="password" value="" required>
+        <label for="mdp2">Repeat password :
+            </label> <input type="password" id="mdp2" name="p2" value="" required>
+
+        <p><input type="submit"></p>
+
+    </form>
+{% endblock %}
+
+{% block switch %}
+    <a href="{{ url_for("connexion") }}">
+        <p>Already have an account ? Log in here</p>
+    </a>
+{% endblock %}
