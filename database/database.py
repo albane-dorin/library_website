@@ -36,6 +36,7 @@ class Book(db.Model):
     synopsis = db.Column(db.Text)
     img_path = db.Column(db.Text)
     grade = db.Column(db.Float(10,3))
+    genres = db.Column(db.Text)
 
 class Comment(db.Model):
     __tablename__ = 'comments'
@@ -68,3 +69,36 @@ def replace_no_cover():
         if b.img_path == img_name[0]:
             b.img_path = url_for('static', filename='img/no_cover.jfif')
     db.session.commit()
+
+def add_book_genres():
+    ids = db.session.query(Book.id).all()
+    i = 0
+    for id in ids:
+        i+=1
+        with open("./jsons/goodreads_book_genres_initial.json") as file:
+            for line in file:
+                data = json.loads(line)
+                if data['book_id'] == str(id[0]):
+                    book = db.session.query(Book).filter_by(id=data["book_id"]).first()
+                    genre = ''
+                    for g in data["genres"].keys():
+                        genre += g + ";"
+                    book.genres = genre
+                    break
+        print(i)
+    db.session.commit()
+
+def list_genres():
+    genres=[]
+    books =db.session.query(Book).all()
+    for b in books:
+        bgenre = b.genres.split(";")
+        for g in bgenre:
+            if g not in genres and g!='':
+                genres.append(g)
+    return(genres)
+
+
+
+
+

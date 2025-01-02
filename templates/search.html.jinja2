@@ -1,0 +1,91 @@
+{% extends 'home.html.jinja2' %}
+
+{% block link %}
+    <title> BookHaven - Search for {{ query }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+    {% endblock %}
+
+ {% block main %}
+        <div class="content">
+            <div class="result">
+                <a class="return" href="javascript:window.history.back();"><img src="{{ url_for('static', filename='/img/return.png') }}"> </a>
+                <div class="search-header">
+                    <div class="search-title">
+                        Result for "{{ query }}":
+                    </div>
+                    {% if nr!=pages %}
+                    <div>Show results {{ 1+(60*(nr-1)) }}-{{ 60*nr }} over {{ total }} </div>
+                    {% else %}
+                        <div>Show results {{ 1+(60*(nr-1)) }}-{{ total }} over {{ total }} </div>
+                    {% endif %}
+                </div>
+            <div class="search-header-pages">
+                {% if nr!=1 %}
+                    <a href="{{ url_for('search', query=query, nr=(nr-1), genre=genre, date=date, grade=grade) }}">Previous page</a>
+                {% endif %}
+                {% if nr!=pages %}
+                    <a href="{{ url_for('search', query=query, nr=(1+nr), genre=genre, date=date, grade=grade) }}">Next page</a>
+                {% endif %}
+            </div>
+                <div class="books_list">
+                    {% for book in results %}
+                        <div class="books" >
+                            <img src="{{ book.img_path }}">
+                            <a href="{{ url_for('close_up', book_id=book.id) }}">
+                                <p>
+                                    {% if book.title|length>30 %}
+                                    {{ book.title[:30] }}...
+                                    {% else %}
+                                    {{ book.title }}
+                                    {% endif %}
+                                </p>
+                                <p>{{ author[book.author_id][0] }}</p>
+                            </a>
+                            <p> {{ book.date.day }}/{{ book.date.month }}/{{ book.date.year }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="pages">
+                    <div>
+                    {% if nr!=1 %}
+                        <a href="{{ url_for('search', query=query, nr=(1), genre=genre, date=date, grade=grade) }}" class="nr">First page</a>
+                        <a href="{{ url_for('search', query=query, nr=(nr-1), genre=genre, date=date, grade=grade) }}" class="nr">Previous page</a>
+                    {% endif %}
+                    </div>
+
+                    <div>
+
+                    {% if pages<=9 %}
+                        {% for i in range(pages) %}
+                            <a href="{{ url_for('search', query=query, nr=loop.index, genre=genre, date=date, grade=grade) }}" class="nr {{ 'current' if loop.index == nr else '' }}">{{ loop.index }}</a>
+                        {% endfor %}
+                    {% elif nr<6 %}
+                        {% for i in range(9) %}
+                            <a href="{{ url_for('search', query=query, nr=loop.index, genre=genre, date=date, grade=grade) }}" class="nr {{ 'current' if loop.index == nr else '' }}">{{ loop.index }}</a>
+                        {% endfor %}
+                        ...
+                    {% elif nr>(pages-6) %}
+                        ...
+                        {% for i in range(pages-8,pages+1) %}
+                        <a href="{{ url_for('search', query=query, nr=pages-9+loop.index, genre=genre, date=date, grade=grade) }}" class="nr {{ 'current' if pages-9+loop.index == nr else '' }}">{{ pages-9+loop.index }}</a>
+                        {% endfor %}
+                    {% else %}
+                        ...
+                        {% for i in range(nr-4,nr+5) %}
+                        <a href="{{ url_for('search', query=query, nr=nr-5+loop.index, genre=genre, date=date, grade=grade) }}" class="nr {{ 'current' if loop.index == 5 else '' }}">{{ nr-5+loop.index }}</a>
+                        {% endfor %}
+                        ...
+                    {% endif %}
+                    </div>
+
+                    <div>
+                    {% if nr!=pages %}
+                        <a href="{{ url_for('search', query=query, nr=(1+nr), genre=genre, date=date, grade=grade) }}" class="nr">Next page</a>
+                        <a href="{{ url_for('search', query=query, nr=(pages), genre=genre, date=date, grade=grade) }}" class="nr">Last page</a>
+
+                    {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+ {% endblock %}
