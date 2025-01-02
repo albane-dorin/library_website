@@ -38,60 +38,286 @@
     </div>
     <div class="main">
         <div class="search_bar">
-            <form action="{{ url_for("connexion") }}" method="post"> <input type="search" placeholder="Enter a title"></form>
+                <div class="top">
+                    <input type="search" id="query" name="query" value="{{ query }}" placeholder="Enter a title">
+                    <button style="display: flex" class="buttonfilter" id="showfilter" onclick="changeClasses('show')"> Show more filter </button>
+                    <button style="display: none" class="buttonfilter" id="hidefilter" onclick="changeClasses('hid')"> Hid more filter </button>
+                </div>
+                <div style="display: none" class="filter" id="filter">
+                    <div>
+                    Genres:
+                    <div class="genre">
+                        {% for g in genres %}
+                            <div class="checkboxgenre">
+                                <input type="checkbox" id="{{ g }}" class="checkbox" name="genre" value="{{ g }}" {% if genre and g in genre %} checked {% endif %}><br>
+                                <label> {{ g }}</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    </div>
+                    <div class="grade-date">
+                        <div>
+                            Grade:
+                            <div class="grade">
+                                <select id="gradecomp" class="select">
+                                    <option value="above">Above</option>
+                                    <option value="below" {% if grade and grade.split('/')[1]=="below" %} selected="selected" {% endif %}>Below</option>
+                                </select>
+                                <div class="slider-container">
+                                  <div class="slider-scale">
+                                    <span>1</span>
+                                    <span>2</span>
+                                    <span>3</span>
+                                    <span>4</span>
+                                    <span>5</span>
+                                  </div>
+
+                                  <input type="range" class="slider" id="note-slider" name="grade" min="1" max="5" step="1" {% if grade %} value="{{ grade.split('/')[0] }}" {% else %} value="1"{% endif %}>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div>
+                            Date:
+                            <div>
+                                <select id="datecomp" class="select">
+                                        <option value="after">After</option>
+                                        <option value="before" {% if date and date.split('/')[1]=="before" %} selected="selected" {% endif %}>Before</option>
+                                    </select>
+                                <div class="date">
+                                    <label>Year:</label>
+                                    <input type="number" min="0" max="2050" step="1" id="year" {% if date %} value="{{ date.split('/')[0] }}" {% endif %}>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
         </div>
         {% block main %}
         <div class="content">
             <div class="recent">
-                <div class="section-title">
+                <div class="list-title">
                     Most recent books
                 </div>
-                <div class="books_list">
-                    {% for book in recents %}
-                        <div class="books" >
-                            <img src="{{ book.img_path }}">
-                            <a href="{{ url_for('close_up', book_id=book.id) }}">
-                                <p>
-                                    {% if book.title|length>30 %}
-                                    {{ book.title[:30] }}...
-                                    {% else %}
-                                    {{ book.title }}
-                                    {% endif %}
-                                </p>
-                                <p>{{ r_author[book.author_id][0] }}</p>
-                            </a>
-                            <p> {{ book.date.day }}/{{ book.date.month }}/{{ book.date.year }}</p>
+                <div class="section">
+                    <button class="arrow arrow-left1" onclick="scrollDown(1)" style="visibility: hidden;"> < </button>
+                    <div class="list-container">
+                        <div class="books_list" id="booklist1">
+                            {% for book in recents %}
+                                <div class="books" >
+                                    <img src="{{ book.img_path }}">
+                                    <a href="{{ url_for('close_up', book_id=book.id) }}">
+                                        <p>
+                                            {% if book.title|length>30 %}
+                                            {{ book.title[:30] }}...
+                                            {% else %}
+                                            {{ book.title }}
+                                            {% endif %}
+                                        </p>
+                                        <p>{{ r_author[book.author_id][0] }}</p>
+                                    </a>
+                                    <p> {{ book.date.day }}/{{ book.date.month }}/{{ book.date.year }}</p>
+                                </div>
+                            {% endfor %}
                         </div>
-                    {% endfor %}
+                    </div>
+                    <button class="arrow arrow-right1" onclick="scrollUp(1)"> > </button>
+
                 </div>
 
             </div>
             <div class="best">
-                <div class="section-title">
+                <div class="list-title">
                     Most popular books
                 </div>
-                <div class="books_list">
-                    {% for book in best %}
-                        <div class="books">
-                            <img src="{{ book.img_path }}">
-                            <a href="{{ url_for('close_up', book_id=book.id) }}">
-                                {% if book.title|length>30 %}
-                                <p>{{ book.title[:30] }}...</p>
-                                {% else %}
-                                <p>{{ book.title }}</p>
-                                {% endif %}
-                                <p> {{ b_author[book.author_id][0] }}</p>
-                            </a>
-                            <p> {{ book.date.day }}/{{ book.date.month }}/{{ book.date.year }}</p>
+                <div class="section">
+                    <button class="arrow arrow-left2" onclick="scrollDown(2)" style="visibility: hidden;"> < </button>
+                    <div class="list-container">
+                        <div class="books_list" id="booklist2">
+                            {% for book in best %}
+                                <div class="books" >
+                                    <img src="{{ book.img_path }}">
+                                    <a href="{{ url_for('close_up', book_id=book.id) }}">
+                                        <p>
+                                            {% if book.title|length>30 %}
+                                            {{ book.title[:30] }}...
+                                            {% else %}
+                                            {{ book.title }}
+                                            {% endif %}
+                                        </p>
+                                        <p>{{ b_author[book.author_id][0] }}</p>
+                                    </a>
+                                    <p> {{ book.date.day }}/{{ book.date.month }}/{{ book.date.year }}</p>
+                                </div>
+                            {% endfor %}
                         </div>
-                    {% endfor %}
-                </div>
+                    </div>
+                    <button class="arrow arrow-right2" onclick="scrollUp(2)"> > </button>
 
+                </div>
             </div>
         </div>
  {% endblock %}
     </div>
 
+<script>
+    document.getElementById('query').addEventListener('keypress', function(event) {
+        if (event.key==='Enter'){
+            event.preventDefault();
+            let query= document.getElementById('query').value;
+            if(query===''){
+                query = 'noQueryEntered-ReturnAllMatchingFilter'
+            }
+            let url = ''
+            let checkboxes = document.getElementsByName('genre');
+            let selected_genres = "";
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    selected_genres += encodeURIComponent((checkboxes[i].value.split(',')[0]).split("-")[0]) + "/" ;
+                }
+            }
+            let grade = document.getElementById('note-slider').value;
+            let gradeComp = document.getElementById('gradecomp').value;
+            let date = document.getElementById('year').value;
+            if(date!=''){
+                let dateComp = document.getElementById('datecomp').value;
+                if (selected_genres!=''){
+                    url = "{{ url_for('search', nr=1, query='') }}" + encodeURIComponent(query) + "?genre=" + selected_genres
+                                                                            + "&grade=" + encodeURIComponent(grade) + "/" + encodeURIComponent(gradeComp)
+                                                                            + "&date=" + encodeURIComponent(date) + "/" + encodeURIComponent(dateComp);
+                }
+                else{
+                url = "{{ url_for('search', nr=1, query='') }}" + encodeURIComponent(query) + "?grade=" + encodeURIComponent(grade) + "/" + encodeURIComponent(gradeComp)
+                                                                + "&date=" + encodeURIComponent(date) + "/" + encodeURIComponent(dateComp);
+                }
+            }
+            else{
+                if (selected_genres!=''){
+                    url = "{{ url_for('search', nr=1, query='') }}" + encodeURIComponent(query) + "?genre=" + selected_genres
+                                                                            + "&grade=" + encodeURIComponent(grade) + "/" + encodeURIComponent(gradeComp)
+                }else{
+                    url = "{{ url_for('search', nr=1, query='') }}" + encodeURIComponent(query) + "?grade=" + encodeURIComponent(grade) + "/" + encodeURIComponent(gradeComp);
+                }
+            }
+            window.location.href = url;
+        }
+
+    });
+
+    function changeClasses(s){
+        event.preventDefault()
+        let show = document.getElementById('showfilter');
+        let hide = document.getElementById('hidefilter');
+        let filter = document.getElementById('filter');
+        if(s==="show"){
+            show.style.display = 'none';
+            hide.style.display = 'flex';
+            filter.style.display = 'flex';
+        }
+        else{
+           show.style.display = 'flex';
+           hide.style.display = 'none';
+           filter.style.display = 'none';
+        }
+    }
+
+    let Index1 = 0;
+    let Index2 = 0;
+    const itemsToShow = 6; // Nombre d'éléments visibles
+    const itemWidth = 230; // Largeur d'un élément (en pixels)
+
+    function updateArrowsVisibility(i) {
+        let id, right, left;
+        if (i ==1 ){
+            currentIndex = Index1;
+            id = 'booklist1';
+            left = '.arrow-left1';
+            right = '.arrow-right1';
+        }
+        else {
+            currentIndex = Index2;
+            id = 'booklist2';
+            left = '.arrow-left2';
+            right = '.arrow-right2';
+        }
+      const totalItems = document.getElementById(id).children.length;
+      const leftArrow = document.querySelector(left);
+      const rightArrow = document.querySelector(right);
+
+      if (currentIndex === 0) {
+        leftArrow.style.visibility = 'hidden';
+      } else {
+        leftArrow.style.visibility = 'visible';
+      }
+
+      if (currentIndex + itemsToShow >= totalItems-1) {
+        rightArrow.style.visibility = 'hidden';
+      } else {
+        rightArrow.style.visibility = 'visible';
+      }
+    }
+
+
+
+    function scrollUp(i) {
+        let id = '';
+        if (i ==1 ){
+            currentIndex = Index1;
+            id = 'booklist1';
+        }
+        else {
+            currentIndex = Index2;
+            id = 'booklist2';
+
+        }
+        const carousel = document.getElementById(id);
+
+        currentIndex++;
+        const offset = -currentIndex * itemWidth;
+        carousel.style.transform = `translateX(${offset}px)`;
+
+        if (i ==1 ){
+            Index1 = currentIndex;
+        }
+        else {
+            Index2 = currentIndex;
+        }
+        updateArrowsVisibility(i);
+    }
+
+    function scrollDown(i) {
+        let id = '';
+        if (i ==1 ){
+            currentIndex = Index1;
+            id = 'booklist1';
+        }
+        else {
+            currentIndex = Index2;
+            id = 'booklist2';
+        }
+        const carousel = document.getElementById(id);
+        const totalItems = carousel.children.length;
+
+        currentIndex--;
+
+        const offset = -currentIndex * itemWidth;
+
+        carousel.style.transform = `translateX(${offset}px)`;
+
+        if (i ==1 ){
+            Index1 = currentIndex;
+        }
+        else {
+            Index2 = currentIndex;
+        }
+        updateArrowsVisibility(i);
+    }
+
+</script>
+
 </body>
+
 
 </html>

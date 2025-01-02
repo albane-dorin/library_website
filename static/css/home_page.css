@@ -44,13 +44,28 @@ a{
 
 .main{
     flex-grow: 1;
+    overflow: auto;
+}
+
+.top{
+    display: flex;
+    align-items: center;
+}
+
+.buttonfilter{
+    background-color: #e7a878;
+    margin: 0 3em;
+    border: #c5895c 2px solid;
+    border-radius: 10px;
+    align-items: center;
+    height: 2.5em;
 }
 
 .search_bar{
     margin: 1.5em;
 }
 
-input{
+input[type='search']{
     width: 75%;
     height: 3em;
     border: 0;
@@ -62,26 +77,157 @@ input:focus{
     outline-width: 0;
 }
 
-.main{
+
+.checkbox{
+    width: 13px;
+    height: 30px;
+    margin: 3px 10px;
+}
+
+.checkboxgenre{
+    display: flex;
+    align-items: center;
+}
+
+.filter{
+    width: 840px;
+    max-width: 100%;
+    height: 230px;
+    background-color: #e7a878;
+    border-radius: 20px;
+    margin-top: 1em;
+    padding: 1em;
+    display: flex;
     overflow: auto;
 }
+
+.genre{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    height: 90%;
+    width: 480px;
+    border-right: black 1px solid;
+    padding-right: 20px;
+    margin-right: 20px;
+}
+
+.grade-date{
+    min-width: 300px;
+}
+
+.select{
+    margin-top: 10px;
+}
+
+.grade{
+    padding-bottom: 20px;
+    border-bottom: black 1px solid;
+    margin-bottom: 20px;
+}
+
+.slider-container {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 80%;
+    margin: 20px auto;
+  }
+
+
+.slider {
+    -webkit-appearance: none; /* Supprime le style par défaut */
+    appearance: none;
+    width: 100%;
+    height: 2px;
+    align-self: center;
+    justify-self: center;
+    position: relative;
+    background: black;
+    z-index: 3;
+    margin: 0;
+    padding: 0;
+    transform: translateY(27px);
+}
+
+
+ /* Style du curseur */
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Supprime le style par défaut */
+    appearance: none;
+    width: 10px;
+    height: 10px;
+    background: black; /* Couleur du curseur */
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    z-index: 4;
+
+}
+
+.slider::-moz-range-thumb .slider::-ms-thumb{
+    width: 10px;
+    height: 10px;
+    background: black;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 4;
+}
+
+.slider-scale {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    position: absolute;
+    z-index: 1;
+}
+
+input[type='text']{
+    width: 20%;
+}
+
+.date{
+    padding-top: 10px;
+}
+
 
 .content{
     overflow: auto;
-    padding-left: 3em;
+
 }
+
+.section{
+    display: flex;
+    align-items: center;
+}
+
+.list-title{
+    padding-left: 3%;
+    font-size: 30px;
+    padding-top: 1em;
+}
+
+.list-container {
+    display: flex;
+    align-items: center;
+    width: 95%;
+    overflow: hidden;
+    position: relative;
+  }
 
 .books_list{
     display: flex;
-    overflow: hidden;
     margin-top: 2em;
     height: fit-content;
+    display: flex;
+    transition: transform 0.5s ease;
+    width: 95%;
 
 }
 
 .books{
-    width: 25%;
-    margin-right: 2em;
+    width: 180px;
+    margin-right: 50px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -92,6 +238,17 @@ input:focus{
     padding: 0em 3em;
 }
 
+.arrow {
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #c5895c;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    margin: 0 20px;
+    border-radius: 5px;
+  }
 
 .books>a{
     text-align: center;

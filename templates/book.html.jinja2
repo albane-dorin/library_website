@@ -17,7 +17,11 @@
             {% else %}
             <p>Date not specified</p>
             {% endif %}
+            {% if book.synopsis|length > 500 %}
             <div>{{ book.synopsis[:500] }}...</div>
+            {% else %}
+            <div> {{ book.synopsis }}</div>
+            {% endif %}
         </div>
     </div>
     <div class="comments">
