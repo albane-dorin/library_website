@@ -82,13 +82,13 @@ def research_book(query, genre, grade, date):
         result = database.db.session.query(database.Book).filter(
             and_(
                 database.Book.title.like("%{}%".format(query)),
-                #database.Book.grade > grade[0],
+                database.Book.grade > grade[0],
             )).all()
     else:
         result = database.db.session.query(database.Book).filter(
             and_(
                 database.Book.title.like("%{}%".format(query)),
-                #database.Book.grade < grade[0],
+                database.Book.grade < grade[0],
             )).all()
     if genre:
         genre = genre.split('/')[:-1]
@@ -112,7 +112,11 @@ def research_book(query, genre, grade, date):
 
 
 @app.route('/')
-def home():  # put application's code here
+def home():
+    user = flask.request.args.get('user_id')
+    if user:
+        user = database.db.session.query(database.User).filter(database.User.id == user).first()
+
     recents = database.db.session.query(database.Book).order_by(database.Book.date.desc())[:50]
     best = database.db.session.query(database.Book).order_by(database.Book.grade.desc())[:50]
     r_author = {}
@@ -121,7 +125,7 @@ def home():  # put application's code here
         r_author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
     for b in best:
         b_author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
-    return flask.render_template('home.html.jinja2', recents=recents, r_author =r_author , best=best, b_author=b_author, genres=genres)
+    return flask.render_template('home.html.jinja2', recents=recents, r_author =r_author , best=best, b_author=b_author, genres=genres, user=user)
 
 
 @app.route('/connexion', methods=["GET", "POST"])
@@ -163,11 +167,20 @@ def inscription():
 
 @app.route('/close-up/<int:book_id>', methods=["GET", "POST"])
 def close_up(book_id):
+    user = flask.request.args.get('user_id')
+    if user:
+        user = database.db.session.query(database.User).filter(database.User.id == user).first()
+
     book = database.db.session.query(database.Book).filter(database.Book.id == book_id).first()
-    return flask.render_template("book.html.jinja2", book=book, genres=genres)
+    author = database.db.session.query(database.Author).filter(database.Author.id ==book.author_id).first()
+    return flask.render_template("book.html.jinja2", book=book, author=author, genres=genres, user=user)
 
 @app.route('/search/<int:nr>/<string:query>', methods=["GET", "POST"])
 def search(nr, query):
+    user = flask.request.args.get('user_id')
+    if user:
+        user = database.db.session.query(database.User).filter(database.User.id == user).first()
+
     global cached_research
     if query== 'noQueryEntered-ReturnAllMatchingFilter':
         query=''
@@ -189,7 +202,7 @@ def search(nr, query):
             database.Author.id == b.author_id).first()
 
     return flask.render_template("search.html.jinja2", query=query, nr=nr, results=cached_research['results'][60*(nr-1):60*nr], total=cached_research['total'], pages=pages, author=author,
-                                 genres=genres, genre=genre, date=date, grade=grade)
+                                 genres=genres, genre=genre, date=date, grade=grade, user=user)
 
 if __name__ == '__main__':
     app.run()

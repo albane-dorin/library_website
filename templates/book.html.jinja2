@@ -8,24 +8,34 @@
 {% block main %}
     <a class="return" href="javascript:window.history.back();"><img src="{{ url_for('static', filename='/img/return.png') }}"> </a>
     <div class="content">
-        <img src="{{ book.img_path }}">
+        <div style="justify-items: center">
+            <img src="{{ book.img_path }}">
+            {% if book.grade %}
+            <p>{{ book.grade|round(2) }}/5</p>
+           {% endif %}
+        </div>
         <div class="main">
             <p>{{ book.title }}</p>
-            <p> {{ book.author_id }}</p>
+            <p> {{ author.complete_name }}</p>
             {% if book.date!=None %}
             <p> Published {{ book.date.strftime("%B") }} {{ book.date.day }}, {{ book.date.year }}</p>
             {% else %}
             <p>Date not specified</p>
             {% endif %}
-            {% if book.synopsis|length > 500 %}
-            <div>{{ book.synopsis[:500] }}...</div>
+            {% if book.synopsis %}
+                {% if book.synopsis|length > 500 %}
+                <div>{{ book.synopsis[:500] }}...</div>
+                {% else %}
+                <div> {{ book.synopsis }}</div>
+                {% endif %}
             {% else %}
-            <div> {{ book.synopsis }}</div>
+                No synopsis
             {% endif %}
+            <div class="book_genre"> Genres: {% for g in book.genres.split(';')[:-2] %} {{ g }} /  {% endfor %} {{ book.genres.split(';')[-2] }}</div>
         </div>
     </div>
     <div class="comments">
-        <p>{{ book.grade }}</p>
+
         {% if comments %}
 
         {% else %}

@@ -19,7 +19,7 @@
         </div>
         <div class="link-section">
             <div class="side-search">
-                <p class="section-title"><a href="{{ url_for('home') }}"> Home page </a> </p>
+                <p class="section-title"><a href="{{ url_for('home', **({'user_id': user.id} if user else {})) }}"> Home page </a> </p>
                 <p>Common research:</p>
                 <p><a>Best score</a></p>
                 <p><a>New books</a></p>
@@ -108,7 +108,7 @@
                             {% for book in recents %}
                                 <div class="books" >
                                     <img src="{{ book.img_path }}">
-                                    <a href="{{ url_for('close_up', book_id=book.id) }}">
+                                    <a href="{{ url_for('close_up', book_id=book.id, **({'user_id': user.id} if user else {})) }}">
                                         <p>
                                             {% if book.title|length>30 %}
                                             {{ book.title[:30] }}...
@@ -139,7 +139,7 @@
                             {% for book in best %}
                                 <div class="books" >
                                     <img src="{{ book.img_path }}">
-                                    <a href="{{ url_for('close_up', book_id=book.id) }}">
+                                    <a href="{{ url_for('close_up', book_id=book.id, **({'user_id': user.id} if user else {})) }}">
                                         <p>
                                             {% if book.title|length>30 %}
                                             {{ book.title[:30] }}...
@@ -170,7 +170,8 @@
             if(query===''){
                 query = 'noQueryEntered-ReturnAllMatchingFilter'
             }
-            let url = ''
+            let url = new URL("{{ url_for('search', nr=1, query='') }}" + encodeURIComponent(query), window.location.origin);
+
             let checkboxes = document.getElementsByName('genre');
             let selected_genres = "";
             for (var i = 0; i < checkboxes.length; i++) {
@@ -181,29 +182,21 @@
             let grade = document.getElementById('note-slider').value;
             let gradeComp = document.getElementById('gradecomp').value;
             let date = document.getElementById('year').value;
+
+            if (selected_genres!='') {
+                url.searchParams.append('genres', selected_genres);
+            }
             if(date!=''){
                 let dateComp = document.getElementById('datecomp').value;
-                if (selected_genres!=''){
-                    url = "{{ url_for('search', nr=1, query='') }}" + encodeURIComponent(query) + "?genre=" + selected_genres
-                                                                            + "&grade=" + encodeURIComponent(grade) + "/" + encodeURIComponent(gradeComp)
-                                                                            + "&date=" + encodeURIComponent(date) + "/" + encodeURIComponent(dateComp);
-                }
-                else{
-                url = "{{ url_for('search', nr=1, query='') }}" + encodeURIComponent(query) + "?grade=" + encodeURIComponent(grade) + "/" + encodeURIComponent(gradeComp)
-                                                                + "&date=" + encodeURIComponent(date) + "/" + encodeURIComponent(dateComp);
-                }
+                url.searchParams.append('date', date+'/'+dateComp);
             }
-            else{
-                if (selected_genres!=''){
-                    url = "{{ url_for('search', nr=1, query='') }}" + encodeURIComponent(query) + "?genre=" + selected_genres
-                                                                            + "&grade=" + encodeURIComponent(grade) + "/" + encodeURIComponent(gradeComp)
-                }else{
-                    url = "{{ url_for('search', nr=1, query='') }}" + encodeURIComponent(query) + "?grade=" + encodeURIComponent(grade) + "/" + encodeURIComponent(gradeComp);
-                }
+            if({{ user.id }}){
+                url.searchParams.append('user_id', {{user.id}});
             }
-            window.location.href = url;
-        }
+            url.searchParams.append('grade', grade+'/'+gradeComp);
 
+            window.location.href = url.toString();
+        }
     });
 
     function changeClasses(s){
