@@ -1,8 +1,9 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask import url_for
 import json
+import random
 from datetime import datetime
-from sqlalchemy import Index, func, update
+from sqlalchemy import Index, func, update, select
 
 
 db = SQLAlchemy()
@@ -88,6 +89,21 @@ def add_book_genres():
         print(i)
     db.session.commit()
 
+def add_users():
+    with open("./jsons/nom.json") as file:
+        for line in file:
+            data = json.loads(line)
+            for name in data['name']:
+                nom = name
+                email = name.lower() + '@gmail.com'
+                password = "password"
+                user = User(username=nom, email=email, password=password)
+                db.session.add(user)
+    db.session.commit()
+
+
+
+
 def list_genres():
     genres=[]
     books =db.session.query(Book).all()
@@ -98,7 +114,32 @@ def list_genres():
                 genres.append(g)
     return(genres)
 
+def add_book_to_list():
+    users = db.session.query(User).all()
+    for u in users:
+        books = db.session.query(Book).order_by(func.rand()).limit(500)
+        for b in books:
+            user = u.id
+            book = b.id
+            grade = random.randint(1,5)
+            name = "My books"
+            list = List(user_id=user, book_id=book, list_name=name, grade=grade)
+            db.session.add(list)
+    db.session.commit()
 
+def update_grade():
+    books=db.session.query(Book).all()
+    lists = db.session.query(List).all()
+    for book in books:
+        grade=0
+        nb=0
+        for l in lists:
+            if l.book_id == book.id:
+                grade += l.grade
+                nb+=1
+        if nb!=0:
+            book.grade = grade/nb
+    db.session.commit()
 
 
 
