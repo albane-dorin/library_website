@@ -110,6 +110,47 @@ def research_book(query, genre, grade, date):
         return filter_result, len(filter_result)
     return result, len(result)
 
+def find_fav_books(el, list, nb):
+    if not el[0].grade:
+        return list
+    if not list[0]:
+        list[0] = el
+    elif el[0].grade>list[0][0].grade:
+        list.insert(0, el)
+    elif el[0].grade==list[0][0].grade and el[0].date >= list[0][0].date:
+            list.insert(0, el)
+
+    elif not list[1]:
+        list[1]=el
+    elif el[0].grade>list[1][0].grade and el[0].grade<=list[0][0].grade:
+        list.insert(1, el)
+    elif el[0].grade == list[1][0].grade and el[0].date >= list[1][0].date:
+            list.insert(1, el)
+
+
+    elif not list[2]:
+        list[2]=el
+    elif el[0].grade > list[2][0].grade and el[0].grade <= list[1][0].grade:
+        list.insert(2, el)
+    elif el[0].grade == list[2][0].grade and el[0].date >= list[2][0].date:
+            list.insert(2, el)
+
+    elif not list[3]:
+        list[3]=el
+    elif el[0].grade>list[3][0].grade and el[0].grade<=list[2][0].grade:
+        list.insert(3, el)
+    elif el[0].grade == list[3][0].grade and el[0].date >= list[3][0].date:
+            list.insert(3, el)
+
+    elif not list[4]:
+        list[4]=el
+    elif el[0].grade>list[4][0].grade and el[0].grade<=list[3][0].grade:
+        list[4]=el
+    elif el[0].grade==list[4][0].grade and el[0].date >= list[4][0].date:
+            list[4] = el
+
+    return list[:5]
+
 
 @app.route('/')
 def home():
@@ -203,6 +244,51 @@ def search(nr, query):
 
     return flask.render_template("search.html.jinja2", query=query, nr=nr, results=cached_research['results'][60*(nr-1):60*nr], total=cached_research['total'], pages=pages, author=author,
                                  genres=genres, genre=genre, date=date, grade=grade, user=user)
+
+@app.route('/about/<int:user_id>')
+def about(user_id):
+    user = database.db.session.query(database.User).filter(database.User.id == user_id).first()
+    book_list = database.db.session.query(database.List, database.Book).join(database.List, database.Book.id==database.List.book_id).filter(database.List.user_id == user_id).all()
+    nb_books = len(book_list)
+    grade = []
+    for el in book_list:
+        if el[0].grade: grade.append(el[0].grade)
+    nb_grade = len(grade)
+    average_grade = sum(grade)/len(grade)
+    comments = database.db.session.query(database.Comment).filter(database.Comment.user_id == user_id).count()
+
+    fav_genre = {}
+    fav_books = [None] * 5
+    if nb_books != 0:
+
+        for genre in genres:
+            c = 0
+            for el in book_list:
+                for g in el[1].genres.split(';'):
+                    if g==genre:
+                        c+=1
+            fav_genre[genre]= c
+        fav_genre = list(dict(sorted(fav_genre.items(), key=lambda item: item[1], reverse=True)))[:3]
+        for el in book_list:
+            has_genre=False
+            for g in fav_genre:
+                if g in el[1].genres.split(';'):
+                    has_genre = True
+                    break
+            if has_genre:
+                fav_books = find_fav_books(el, fav_books, nb_books)
+
+    return flask.render_template("about.html.jinja2", user=user, genres=genres, fav_genre = fav_genre, fav_books=fav_books,
+                                                                        nb_books=nb_books, nb_grade=nb_grade, average_grade=average_grade, comments=comments)
+
+
+@app.route('/deleteAcount/<string:user_id>')
+def deleteAccount(user_id):
+    if user_id:
+        user_id = int(user_id)
+        database.delete_user(user_id)
+    return {'message': 'User deleted'}
+
 
 if __name__ == '__main__':
     app.run()

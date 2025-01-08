@@ -1,0 +1,55 @@
+{% extends 'home.html.jinja2' %}
+
+{% block link %}
+    <title>BookHaven - {{ user.username }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='/css/about.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='/css/common.css') }}">
+{% endblock %}
+
+{% block main %}
+    <div class="content">
+        <h1 class="title">Your profil:</h1>
+        <div class="header">
+            <div class="info">
+                <div>{{ user.username }}</div>
+                <div>{{ user.email }}</div>
+            </div>
+            <button class="delete clickable" onclick="deleteConfirmation('open')"> Delete account </button>
+
+        </div>
+        <div>
+            <div> Account created on {{ user.date.strftime("%B") }} {{ user.date.day }} of {{ user.date.year }}</div>
+            <p> {{ nb_books }} books saved in a list.</p>
+            <p> {{ nb_grade }} books graded, with an average grade of {{ average_grade }}.</p>
+            <p> {{ comments }} comments written.</p>
+        </div>
+        <h2>Your favorite genres are:</h2>
+        <div class="list_genre">
+        {% for g in fav_genre %}
+            <p class="fav_genre"> {{ g[0]|upper }}{{g[1:] }}  </p>
+        {% endfor %}
+        </div>
+        <h2>Your favorite books are:</h2>
+        <div class="books_list">
+        {% for b in fav_books %}
+            {% if b %}
+            <div class="books">
+                <img src="{{ b[1].img_path }}">
+                <a href="{{ url_for('close_up', book_id=b[1].id, user_id=user.id) }}"><p>{{ b[1].title }}</p></a>
+            </div>
+            {% endif %}
+        {% endfor %}
+        </div>
+
+    </div>
+
+    <div id="pop-up">
+        <p> You are about to delete your account.</p>
+        <p>Are you sure you want to proceed?</p>
+        <div class="choice">
+            <button class="choice_button" onclick="deleteConfirmation('close')"> Cancel </button>
+            <button class="choice_button delete_button" onclick="deleteAccount({{ user.id }})"> Delete account </button>
+        </div>
+    </div>
+
+{% endblock %}

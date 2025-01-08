@@ -2,7 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import url_for
 import json
 import random
-from datetime import datetime
+from datetime import datetime, timedelta, date
 from sqlalchemy import Index, func, update, select
 
 
@@ -17,6 +17,7 @@ class User(db.Model):
     username = db.Column(db.Text)
     email = db.Column(db.Text)
     password = db.Column(db.Text)
+    date = db.Column(db.Date)
 
 
 class Author(db.Model):
@@ -33,7 +34,7 @@ class Book(db.Model):
     isbn = db.Column(db.Integer)
     title = db.Column(db.Text)
     author_id = db.Column(db.Integer, db.ForeignKey('authors.id'))
-    date = db.Column(db.DateTime)
+    date = db.Column(db.Date)
     synopsis = db.Column(db.Text)
     img_path = db.Column(db.Text)
     grade = db.Column(db.Float(10,3))
@@ -54,11 +55,18 @@ class List(db.Model):
     book_id = db.Column(db.Integer, db.ForeignKey('books.id'))
     list_name = db.Column(db.Text)
     grade = db.Column(db.Float(10,3))
+    date = db.Column(db.Date)
 
 
 def new_user(username, password, mail):
     user = User(username=username, password=password, email=mail)
     db.session.add(user)
+    db.session.commit()
+
+def delete_user(id):
+    db.session.query(List).filter(List.user_id==id).delete()
+    db.session.query(Comment).filter(Comment.user_id==id).delete()
+    db.session.query(User).filter(User.id==id).delete()
     db.session.commit()
 
 def replace_no_cover():
@@ -141,5 +149,24 @@ def update_grade():
             book.grade = grade/nb
     db.session.commit()
 
+def add_user_date():
+    start = date(2020, 1, 1)
+    end = date(2021,12,31)
+    diff = (end-start).days
+    users = db.session.query(User).all()
+    for u in users:
+        day=random.randint(1,diff)
+        u.date=start+timedelta(days=day)
+    db.session.commit()
 
 
+def add_book_date():
+    list = db.session.query(List, User,Book).join(Book, List.book_id==Book.id).join(User, List.user_id==User.id).all()
+    for el in list:
+        if el[2].date: start = max(el[1].date,el[2].date)
+        else: start = el[1].date
+        end = date.today()
+        diff = (end-start).days
+        day = random.randint(1,diff)
+        el[0].date=start+timedelta(days=day)
+    db.session.commit()
