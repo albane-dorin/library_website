@@ -4,10 +4,13 @@
     {% block link %}
     <title> BookHaven - Home page</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home_page.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='/css/common.css') }}">
+
     {% endblock %}
 </head>
 
 <body>
+    <div class="" id="overlay"></div>
     <div class="sidebar">
         <div class="profil-section">
             {% if user %}
@@ -31,7 +34,7 @@
             <div class="">
                 <p class="section-title">Your profil:</p>
                 <p><a>Your books</a></p>
-                <p><a>About</a></p>
+                <p><a href="{{ url_for('about', user_id = user.id) }}">About</a></p>
             </div>
             {% endif %}
         </div>
@@ -43,18 +46,18 @@
                     <button style="display: flex" class="buttonfilter" id="showfilter" onclick="changeClasses('show')"> Show more filter </button>
                     <button style="display: none" class="buttonfilter" id="hidefilter" onclick="changeClasses('hid')"> Hid more filter </button>
                 </div>
-                <div style="display: none" class="filter" id="filter">
-                    <div>
+                <div style="display: none" class="filter-container" id="filter">
+                    <div class="filter">
                     Genres:
                     <div class="genre">
                         {% for g in genres %}
                             <div class="checkboxgenre">
-                                <input type="checkbox" id="{{ g }}" class="checkbox" name="genre" value="{{ g }}" {% if genre and g in genre %} checked {% endif %}><br>
+                                    <input type="checkbox" id="{{ g }}" class="checkbox" name="genre" value="{{ g }}" {% if genre and g.split(',')[0].split('-')[0] in genre %} checked {% endif %}><br>
                                 <label> {{ g }}</label>
                             </div>
                         {% endfor %}
                     </div>
-                    </div>
+
                     <div class="grade-date">
                         <div>
                             Grade:
@@ -90,6 +93,7 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
                     </div>
 
 
@@ -163,6 +167,7 @@
     </div>
 
 <script>
+    const user = {{ user.id }}
     document.getElementById('query').addEventListener('keypress', function(event) {
         if (event.key==='Enter'){
             event.preventDefault();
@@ -184,14 +189,14 @@
             let date = document.getElementById('year').value;
 
             if (selected_genres!='') {
-                url.searchParams.append('genres', selected_genres);
+                url.searchParams.append('genre', selected_genres);
             }
             if(date!=''){
                 let dateComp = document.getElementById('datecomp').value;
                 url.searchParams.append('date', date+'/'+dateComp);
             }
-            if({{ user.id }}){
-                url.searchParams.append('user_id', {{user.id}});
+            if(user){
+                url.searchParams.append('user_id', user);
             }
             url.searchParams.append('grade', grade+'/'+gradeComp);
 
@@ -308,6 +313,32 @@
         updateArrowsVisibility(i);
     }
 
+    function deleteConfirmation(s){
+        const overlay = document.getElementById('overlay')
+        const popUp = document.getElementById('pop-up')
+        if (s==='open'){
+            popUp.classList.add('active')
+            overlay.classList.add('active')
+        }
+        else{
+            popUp.classList.remove('active')
+            overlay.classList.remove('active')
+        }
+    }
+
+    function deleteAccount(){
+        console.log(user)
+        console.log(user.type)
+        if (user){
+            fetch("{{ url_for('deleteAccount', user_id='') }}" + encodeURIComponent(user))
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            });
+            window.location.href = '{{ url_for('home') }}'
+        }
+
+    }
 </script>
 
 </body>

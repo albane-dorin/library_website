@@ -3,7 +3,8 @@
 {% block link %}
     <title> BookHaven - Search for {{ query }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
-    {% endblock %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='/css/common.css') }}">
+{% endblock %}
 
  {% block main %}
         <div class="content">
