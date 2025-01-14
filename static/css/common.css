@@ -195,3 +195,22 @@ input[type='text']{
 .date{
     padding-top: 10px;
 }
+
+
+#overlay{
+    position: fixed;
+    opacity: 0;
+    transition : 200ms ease-in-out;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,.5);
+    pointer-events: none;
+    z-index: 7;
+}
+
+#overlay.active{
+    opacity: 1;
+    pointer-events: all;
+}

@@ -38,9 +38,29 @@
     <div class="comments">
 
         {% if comments %}
+            {% for c in comments %}
+            <div class="comments">
+                <div class="com_header">
+                    <p> {{ c[1].username }} </p>
+                    <p> {{ c[0].date.strftime("%b") }} {{ c[0].date.day }}, {{ c[0].date.year }}</p>
+                    {% if user and user.id==c[1].id %}
+                        <button class="delete clickable" onclick="deleteConfirmation('open')"> Delete account </button>
+                    {% endif %}
+                </div>
+                    {{ c[0].content }}
+            </div>
+            {% endfor %}
 
         {% else %}
             <p> No comments yet</p>
         {% endif %}
+    </div>
+
+    <div id="pop-up">
+        <p>Are you sure you want to delete your comment?</p>
+        <div class="choice">
+            <button class="choice_button" onclick="deleteConfirmation('close')"> Cancel </button>
+            <button class="choice_button delete_button" onclick="deleteAccount({{ user.id }})"> Delete comment </button>
+        </div>
     </div>
 {% endblock %}

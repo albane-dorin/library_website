@@ -1,0 +1,107 @@
+{% extends 'home.html.jinja2' %}
+
+{% block link %}
+    <title> BookHaven - Your books</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/list.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='/css/common.css') }}">
+
+
+{% endblock %}
+
+
+{% block main %}
+    <div class="header">
+
+    <p class="page_title"> Your books:</p>
+
+        <div class="display_choice">
+            <select class="select_list" id="display_type">
+                <option value="date">Date</option>
+                <option value="grade" {% if type=='grade' %} selected="selected" {% endif %}>Grade</option>
+                <option value="title" {% if type=='title' %} selected="selected" {% endif %}>Title</option>
+            </select>
+
+            <button {% if order=='asc' %}class= "arrow_button" {% else %} class="arrow_button not-shown" {% endif %}
+                    id="arrow_up" onclick="changeArrow('up')">
+                <img class="arrow" src="{{ url_for('static', filename='img/arrow-up.png') }}">
+            </button>
+            <button {% if order=='asc' %}class= "arrow_button not-shown" {% else %} class="arrow_button" {% endif %}
+                    id="arrow_down" onclick="changeArrow('down')">
+                <img class="arrow" src="{{ url_for('static', filename='img/arrow-down.png') }}">
+            </button>
+        </div>
+    </div>
+
+
+
+    {% for b in books %}
+        <div class="books">
+        <a href="{{ url_for('close_up', book_id=b[1].id, user_id=user.id) }}">
+            <div class="book_img">
+                <img src="{{ b[1].img_path }}">
+                <div>{{ b[0].grade|round(0) }} / 5</div>
+            </div>
+        </a>
+            <div class="book_info">
+                <div class="book_header">
+                    <a href="{{ url_for('close_up', book_id=b[1].id, user_id=user.id) }}" class="title">{{ b[1].title }}</a>
+                    <img src="{{ url_for('static', filename="img/more-button.png") }}">
+                </div>
+                <div class="list_genre">
+                    {% for g in b[1].genres.split(';')[:-1] %}
+                       <div class="book_genre">  {{g[0]|upper }}{{g[1:] }}</div>
+                    {% endfor %}
+                </div>
+            {% if b[1].synopsis %}
+                {% if b[1].synopsis|length > 250 %}
+                <div>{{ b[1].synopsis[:250] }}...</div>
+                {% else %}
+                <div> {{ b[1].synopsis }}</div>
+                {% endif %}
+            {% else %}
+                No synopsis
+            {% endif %}
+            {% if b[2] and b[2].status=="1" %}
+                {% if b[2].content|length > 300 %}
+                <div>{{ b[2].content[:300] }}...</div>
+                {% else %}
+                <div> {{ b[2].content }}</div>
+                {% endif %}
+            {% endif %}
+            </div>
+        </a>
+        </div>
+    {% endfor %}
+
+{% endblock %}
+
+
+{% block addScript %}
+    <script>
+        document.getElementById('display_type').addEventListener('change', function () {
+            const url = new URL(window.location.href);
+
+            url.searchParams.set('type', this.value);
+
+            window.location.href = url.toString();
+        });
+
+
+        function changeArrow(s){
+            const up = document.getElementById('arrow_up');
+            const down = document.getElementById('arrow_down');
+            const url = new URL(window.location.href);
+            const current = url.searchParams.get("order")
+            if(s==="up"){
+                up.classList.add('not-shown')
+                down.classList.remove('not-shown')
+                url.searchParams.set("order", "desc")
+            }else{
+                down.classList.add('not-shown')
+                up.classList.remove('not-shown')
+                url.searchParams.set("order", "asc")
+            }
+            window.location.href = url.toString()
+        }
+    </script>
+{% endblock %}
