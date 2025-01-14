@@ -47,6 +47,7 @@ class Comment(db.Model):
     book_id = db.Column(db.Integer, db.ForeignKey('books.id'))
     content = db.Column(db.Text)
     status = db.Column(db.Integer)
+    date = db.Column(db.Date)
 
 class List(db.Model):
     __tablename__ = 'lists'
@@ -169,4 +170,46 @@ def add_book_date():
         diff = (end-start).days
         day = random.randint(1,diff)
         el[0].date=start+timedelta(days=day)
+    db.session.commit()
+
+def add_comment_date():
+    comment = db.session.query(Comment, User,Book).join(Book, Comment.book_id==Book.id).join(User, Comment.user_id==User.id).all()
+    for el in comment:
+        if el[2].date: start = max(el[1].date,el[2].date)
+        else: start = el[1].date
+        end = date.today()
+        diff = (end-start).days
+        day = random.randint(1,diff)
+        el[0].date=start+timedelta(days=day)
+    db.session.commit()
+
+def add_comments():
+    books = db.session.query(Book).all()
+    users = db.session.query(User).all()
+    nbuser = len(users)-1
+    with open("./jsons/Critical_Reviews.json") as file:
+        for line in file:
+            data = json.loads(line)
+            nbcomm = len(data["comments"])-1
+            for b in books:
+                lcomm = []
+                lu = []
+                for i in range(random.randint(5,10)):
+                    bid = b.id
+                    randu = random.randint(1, nbuser)
+                    randcomm = random.randint(1, nbcomm)
+
+                    while randu in lu:
+                        randu = random.randint(1, nbuser)
+                    while randcomm in lcomm:
+                        randcomm = random.randint(1, nbcomm)
+                    uid = users[randu].id
+                    content = data['comments'][randcomm]
+
+                    lu.append(randu)
+                    lcomm.append(randcomm)
+
+                    comment =Comment(user_id=uid, book_id=bid, content=content, status=0)
+                    db.session.add(comment)
+                print('book ', b, ' done')
     db.session.commit()
