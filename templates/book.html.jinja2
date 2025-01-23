@@ -4,6 +4,32 @@
     <title>BookHaven - {{ book.title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='/css/book.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='/css/common.css') }}">
+    <script>
+        function changeSave(user_id, book_id, s){
+            const book = book_id
+            const user = user_id
+            console.log('heeere')
+            fetch('/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_id: user, book_id: book, command: s })
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Data sent successfully.");
+                    window.location.reload()
+
+                } else {
+                    console.error("Failed to send data.");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        }
+    </script>
 {% endblock %}
 
 {% block main %}
@@ -16,7 +42,19 @@
            {% endif %}
         </div>
         <div class="main">
-            <p>{{ book.title }}</p>
+            <div class="book_top">
+                <p class="book_title">{{ book.title }}</p>
+                {% if user %}
+                <div>
+                <!-- <button> Mark as read </button> -->
+                    {% if in_list %}
+                        <button onclick="changeSave({{ user.id }}, {{ book.id }}, 'remove')" title="Remove from saved book" class="add_list"> <img src="{{ url_for('static', filename='img/remove-from-list.png') }}"> </button>
+                    {% else %}
+                        <button onclick="changeSave({{ user.id }}, {{ book.id }}, 'add')" title="Save book in list" class="add_list"> <img src="{{ url_for('static', filename='img/add-to-list.png') }}"></button>
+                    {% endif %}
+                    </div>
+                {% endif %}
+            </div>
             <p> {{ author.complete_name }}</p>
             {% if book.date!=None %}
             <p> Published {{ book.date.strftime("%B") }} {{ book.date.day }}, {{ book.date.year }}</p>
@@ -36,18 +74,24 @@
         </div>
     </div>
     <div class="comments">
+    <div class="page_title"> Comments:</div>
 
         {% if comments %}
             {% for c in comments %}
-            <div class="comments">
+            <div class="comment">
                 <div class="com_header">
-                    <p> {{ c[1].username }} </p>
-                    <p> {{ c[0].date.strftime("%b") }} {{ c[0].date.day }}, {{ c[0].date.year }}</p>
+                    <div>
+                        Comment by
+                        <span class="com_name"> {{ c[1].username }}  </span>
+                        <span class="com_date">{{ "%02d" %c[0].date.day}}/{{ "%02d" %c[0].date.month }}/{{ c[0].date.year }} </span>:
+                    </div>
                     {% if user and user.id==c[1].id %}
                         <button class="delete clickable" onclick="deleteConfirmation('open')"> Delete account </button>
                     {% endif %}
                 </div>
+                <div class="com_content">
                     {{ c[0].content }}
+                </div>
             </div>
             {% endfor %}
 

@@ -211,11 +211,12 @@ def close_up(book_id):
     user = flask.request.args.get('user_id')
     if user:
         user = database.db.session.query(database.User).filter(database.User.id == user).first()
+        in_list = database.db.session.query(database.List).filter(and_(database.List.book_id == book_id, database.List.user_id==user.id, database.List.list_name!="notsaved")).first()
 
     book = database.db.session.query(database.Book).filter(database.Book.id == book_id).first()
     author = database.db.session.query(database.Author).filter(database.Author.id ==book.author_id).first()
     comments = database.db.session.query(database.Comment, database.User).join(database.User, database.Comment.user_id==database.User.id).filter(and_(database.Comment.book_id == book_id, database.Comment.status==0)).all()
-    return flask.render_template("book.html.jinja2", book=book, author=author, genres=genres, user=user, comments=comments)
+    return flask.render_template("book.html.jinja2", book=book, author=author, genres=genres, user=user, in_list=in_list, comments=comments)
 
 @app.route('/search/<int:nr>/<string:query>', methods=["GET", "POST"])
 def search(nr, query):
@@ -283,14 +284,14 @@ def about(user_id):
                                                                         nb_books=nb_books, nb_grade=nb_grade, average_grade=average_grade, comments=comments)
 
 @app.route('/list/<int:user_id>')
-def list(user_id):
-    user=database.db.session.query(database.User).filter(database.User.id==user_id).first()
+def book_list(user_id):
+    user = database.db.session.query(database.User).filter(database.User.id==user_id).first()
     order = flask.request.args.get('order')
     type = flask.request.args.get('type')
-    books = (database.db.session.query(database.List, database.Book, database.Comment).
+    books = (database.db.session.query(database.List, database.Book).
              join(database.List, database.Book.id==database.List.book_id).
-             outerjoin(database.Comment, database.Book.id == database.Comment.book_id).
              filter(database.List.user_id==user.id))
+    print(books.count())
     if order=='desc':
         if type=='grade':
             books = books.order_by(database.List.grade, database.List.date).all()
@@ -305,6 +306,7 @@ def list(user_id):
             books = books.order_by(database.Book.title, database.List.date.desc()).all()
         else:
             books = books.order_by(database.List.date.desc()).all()
+    print(len(books))
 
     return flask.render_template("list.html.jinja2", user=user, genres=genres, books=books, order=order, type=type)
 
@@ -314,6 +316,25 @@ def deleteAccount(user_id):
         user_id = int(user_id)
         database.delete_user(user_id)
     return {'message': 'User deleted'}
+
+@app.route('/save', methods=['POST'])
+def save():
+    data = flask.request.json
+    user_id = data.get('user_id')
+    book_id = data.get('book_id')
+    command = data.get('command')
+    print('1')
+    if user_id and book_id:
+        user_id = int(user_id)
+        book_id = int(book_id)
+        print('2')
+        if command=="add":
+            database.add_book_to_list(book_id, user_id)
+        else:
+            print('3')
+            database.remove_book_from_list(book_id, user_id)
+    print('4')
+    return {'message': 'save changed'}, 200
 
 
 if __name__ == '__main__':

@@ -39,7 +39,7 @@
         <a href="{{ url_for('close_up', book_id=b[1].id, user_id=user.id) }}">
             <div class="book_img">
                 <img src="{{ b[1].img_path }}">
-                <div>{{ b[0].grade|round(0) }} / 5</div>
+                {% if b[0].grade %}<div>{{ b[0].grade|round(0) }} / 5</div> {% endif %}
             </div>
         </a>
             <div class="book_info">
@@ -60,13 +60,6 @@
                 {% endif %}
             {% else %}
                 No synopsis
-            {% endif %}
-            {% if b[2] and b[2].status=="1" %}
-                {% if b[2].content|length > 300 %}
-                <div>{{ b[2].content[:300] }}...</div>
-                {% else %}
-                <div> {{ b[2].content }}</div>
-                {% endif %}
             {% endif %}
             </div>
         </a>

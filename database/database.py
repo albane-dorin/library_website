@@ -3,7 +3,7 @@ from flask import url_for
 import json
 import random
 from datetime import datetime, timedelta, date
-from sqlalchemy import Index, func, update, select
+from sqlalchemy import Index, func, update, select, and_
 
 
 db = SQLAlchemy()
@@ -70,6 +70,29 @@ def delete_user(id):
     db.session.query(User).filter(User.id==id).delete()
     db.session.commit()
 
+def add_book_to_list(book_id, user_id):
+    book_list = db.session.query(List).filter(and_(List.book_id==book_id, List.user_id==user_id, List.list_name=="notsaved")).first()
+    if book_list:
+        book_list.list_name = "My books"
+        book_list.date = date.today()
+        db.session.commit()
+    else:
+        list = List(user_id=user_id, book_id=book_id, list_name="My books", date=date.today())
+        db.session.add(list)
+        db.session.commit()
+
+def remove_book_from_list(book_id, user_id):
+    book_list = db.session.query(List).filter(and_(List.book_id==book_id, List.user_id==user_id)).first()
+    if book_list.grade:
+        book_list.list_name = "notsaved"
+        book_list.date = None
+        db.session.commit()
+    else:
+        db.session.delete(book_list)
+        db.session.commit()
+
+
+
 def replace_no_cover():
     books = Book.query.all()
     img_name = db.session.query(Book.img_path).filter(Book.title == "Fugly").first()
@@ -123,7 +146,7 @@ def list_genres():
                 genres.append(g)
     return(genres)
 
-def add_book_to_list():
+def add_books_to_lists():
     users = db.session.query(User).all()
     for u in users:
         books = db.session.query(Book).order_by(func.rand()).limit(500)
