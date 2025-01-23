@@ -4,11 +4,255 @@
     <title>BookHaven - {{ book.title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='/css/book.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='/css/common.css') }}">
+
+{% endblock %}
+
+{% block main %}
+    <a class="return" href="javascript:window.history.back();"><img src="{{ url_for('static', filename='/img/return.png') }}"> </a>
+    <div class="content">
+        <div>
+            <div style="justify-items: center">
+                <img src="{{ book.img_path }}">
+                {% if book.grade %}
+                    <p style="margin-bottom: 0">{{ book.grade|round(2) }}/5</p>
+                    <p class="nb">{{ nb_grade }} person graded this book</p>
+                {% else %}
+                    <p> No grade yet </p>
+                {% endif %}
+            {% if user %}
+            </div>
+            <div class="rating">
+                <p class="rate_title">Your rating:</p>
+                {% if in_list and in_list.grade %}
+                <div>
+                {% for i in range(5) %}
+                     {% if in_list.grade>=loop.index %}
+                         <span class="star filled" data-value="{{ loop.index }}"> ★</span>
+                     {% else %}
+                         <span class="star" data-value="{{ loop.index }}">☆</span>
+                     {% endif %}
+                {% endfor %}
+                </div>
+                {% else %}
+                    <p id="notGraded">Not graded yet</p>
+                    <div id="emptyStar" style="display: none">
+                     {% for i in range(5) %}
+                    <span class="star"
+                          data-value="{{ loop.index }}">☆</span>
+                    {% endfor %}
+                    </div>
+
+                {% endif %}
+                <button id="change_grade"  onclick="changeGrade()"> Change grade </button>
+                <button style="display: none" id="submit_grade" onclick="submitGrade({{ user.id }}, {{ book.id }})"> Submit </button>
+
+
+
+            </div>
+        {% endif %}
+
+
+        </div>
+        <div class="main">
+            <div class="book_top">
+                <p class="book_title">{{ book.title }}</p>
+                {% if user %}
+                <div>
+                <!-- <button> Mark as read </button> -->
+                    {% if in_list and in_list.list_name!='notsaved' %}
+                        <button onclick="changeSave({{ user.id }}, {{ book.id }}, 'remove')" title="Remove from saved book" class="add_list"> <img src="{{ url_for('static', filename='img/remove-from-list.png') }}"> </button>
+                    {% else %}
+                        <button onclick="changeSave({{ user.id }}, {{ book.id }}, 'add')" title="Save book in list" class="add_list"> <img src="{{ url_for('static', filename='img/add-to-list.png') }}"></button>
+                    {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            <p> {{ author.complete_name }}</p>
+            {% if book.date!=None %}
+            <p> Published {{ book.date.strftime("%B") }} {{ book.date.day }}, {{ book.date.year }}</p>
+            {% else %}
+            <p>Date not specified</p>
+            {% endif %}
+            {% if book.synopsis %}
+                {% if book.synopsis|length > 500 %}
+                <div id='synopsis' class="clickable" onclick="showDescription()">{{ book.synopsis[:500] }}...</div>
+                {% else %}
+                <div> {{ book.synopsis }}</div>
+                {% endif %}
+            {% else %}
+                No synopsis
+            {% endif %}
+            <div class="book_genre"> Genres: {% for g in book.genres.split(';')[:-2] %} {{ g }} /  {% endfor %} {{ book.genres.split(';')[-2] }}</div>
+        </div>
+    </div>
+    <div class="comments">
+    <div class="page_title"> Comments:</div>
+
+        {% if user %}
+            <div id="addcomment" style="display: flex">
+                <button class="comment_button" onclick="writeComment('write')">Add a new comment</button>
+            </div>
+            <div id="writecomment" style="display: none">
+                <span>Write your comment:  </span>
+                <textarea id="comment_content" placeholder="Enter your comment"></textarea>
+                <div class="buttons">
+                    <button class="comment_button" onclick="writeComment('add')"> Cancel </button>
+                    <button class="comment_button" onclick="addComment({{ user.id }}, {{ book.id }})"> Publish </button>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if comments %}
+            {% for c in comments %}
+            <div class="comment">
+                <div class="com_header">
+                    {% if user and user.id==c[1].id %}
+                        <div>
+                            <span class="com_name"> You  </span> commented
+                            <span class="com_date">{{ "%02d" %c[0].date.day}}/{{ "%02d" %c[0].date.month }}/{{ c[0].date.year }} </span>:
+                        </div>
+                        <button class="delete clickable comment_button" onclick="deleteConfirmation('open')"> Delete comment </button>
+
+                        <div id="pop-up">
+                            <p>Are you sure you want to delete your comment?</p>
+                            <div class="choice">
+                                <button class="choice_button" onclick="deleteConfirmation('close')"> Cancel </button>
+                                <button class="choice_button delete_button" onclick="deleteComment({{ c[0].id }})"> Delete comment </button>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div>
+                            Comment by
+                            <span class="com_name"> {{ c[1].username }}  </span>
+                            <span class="com_date">{{ "%02d" %c[0].date.day}}/{{ "%02d" %c[0].date.month }}/{{ c[0].date.year }} </span>:
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="com_content">
+                    {{ c[0].content }}
+                </div>
+            </div>
+            {% endfor %}
+
+        {% else %}
+            <p> No comments yet</p>
+        {% endif %}
+    </div>
+
+
+{% endblock %}
+
+{% block addScript %}
     <script>
+
+        const stars = document.querySelectorAll('.star');
+        const change = document.getElementById('change_grade');
+        const submit = document.getElementById('submit_grade')
+        let isRatingEnabled = false;
+        let isGraded = {{ in_list.grade }}
+
+
+        // Ajouter des événements aux étoiles
+        stars.forEach(star => {
+            // Événement "click"
+            star.addEventListener('click', () => {
+                if (!isRatingEnabled) {
+                    return;
+                }
+
+                isGraded = star.getAttribute('data-value');
+
+                // Remplir les étoiles jusqu'à celle cliquée
+                stars.forEach(s => {
+                    if (s.getAttribute('data-value') <= isGraded) {
+                        s.textContent = '★'
+                        s.classList.add('filled');
+                    } else {
+                        s.textContent = '☆'
+                        s.classList.remove('filled');
+                    }
+                });
+            });
+
+            // Événement "mouseover" (pour survoler les étoiles)
+            star.addEventListener('mouseover', () => {
+                if (!isRatingEnabled) return; // Bloquer l'effet si la notation est désactivée
+
+                const rating = star.getAttribute('data-value');
+                stars.forEach(s => {
+                    if (s.getAttribute('data-value') <= rating) {
+                        s.textContent = '★'
+                        s.classList.add('filled');
+                    } else {
+                        s.textContent = '☆'
+                        s.classList.remove('filled');
+                    }
+                });
+            });
+
+            // Événement "mouseout" (pour retirer l'effet après survol)
+            star.addEventListener('mouseout', () => {
+                if (!isRatingEnabled) return;
+
+                stars.forEach(s => {
+                    if(isGraded){
+                        if (s.getAttribute('data-value') <= isGraded) {
+                            s.textContent = '★';
+                            s.classList.add('filled');
+                        } else {
+                            s.textContent = '☆';
+                            s.classList.remove('filled');
+                        }
+                    }
+                    else{
+                        s.textContent = '☆';
+                        s.classList.remove('filled');
+                    }
+                });
+
+            });
+        });
+
+        function changeGrade() {
+            const not = document.getElementById('notGraded')
+            const empty = document.getElementById('emptyStar')
+            isRatingEnabled = true;
+            change.style.display='none';
+            submit.style.display='flex'
+            if (not){
+                not.style.display='none';
+                empty.style.display='flex'
+            }
+            stars.forEach(star => star.classList.add('clickable'));
+        };
+
+        function submitGrade(user_id, book_id) {
+            const user = user_id
+            const book = book_id
+            fetch('/addGrade', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_id: user, book_id: book, grade: isGraded })
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Data sent successfully.");
+                    window.location.reload()
+
+                } else {
+                    console.error("Failed to send data.");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        };
+
         function changeSave(user_id, book_id, s){
             const book = book_id
             const user = user_id
-            console.log('heeere')
             fetch('/save', {
                 method: 'POST',
                 headers: {
@@ -28,83 +272,81 @@
             .catch(error => {
                 console.error("Error:", error);
             });
+        };
+
+        function showDescription(){
+            const synopsis = document.getElementById("synopsis");
+            if(synopsis.classList.contains('show')){
+                synopsis.classList.remove('show')
+                synopsis.innerHTML = `{{ book.synopsis[:500] }}...`
+            }
+            else{
+                synopsis.classList.add('show');
+                synopsis.innerHTML = `{{ book.synopsis}}`;
+            }
         }
+
+        function deleteComment(comment_id){
+            const comment = comment_id
+            fetch('/deleteComment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ comment_id: comment })
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Data sent successfully.");
+                    window.location.reload()
+
+                } else {
+                    console.error("Failed to send data.");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        }
+
+        function writeComment(s){
+            const write = document.getElementById("writecomment");
+            const add = document.getElementById("addcomment");
+            if (s=="write"){
+                write.style.display = 'flex';
+                add.style.display = 'none';
+            }
+            else{
+                write.style.display = 'none';
+                add.style.display = 'flex';
+            }
+
+        }
+
+        function addComment(user_id, book_id){
+            const book = book_id
+            const user = user_id
+            const content = document.getElementById("comment_content").value
+            fetch('/addComment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_id: user, book_id: book, content: content })
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Data sent successfully.");
+                    window.location.reload()
+
+                } else {
+                    console.error("Failed to send data.");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        }
+
     </script>
-{% endblock %}
-
-{% block main %}
-    <a class="return" href="javascript:window.history.back();"><img src="{{ url_for('static', filename='/img/return.png') }}"> </a>
-    <div class="content">
-        <div style="justify-items: center">
-            <img src="{{ book.img_path }}">
-            {% if book.grade %}
-            <p>{{ book.grade|round(2) }}/5</p>
-           {% endif %}
-        </div>
-        <div class="main">
-            <div class="book_top">
-                <p class="book_title">{{ book.title }}</p>
-                {% if user %}
-                <div>
-                <!-- <button> Mark as read </button> -->
-                    {% if in_list %}
-                        <button onclick="changeSave({{ user.id }}, {{ book.id }}, 'remove')" title="Remove from saved book" class="add_list"> <img src="{{ url_for('static', filename='img/remove-from-list.png') }}"> </button>
-                    {% else %}
-                        <button onclick="changeSave({{ user.id }}, {{ book.id }}, 'add')" title="Save book in list" class="add_list"> <img src="{{ url_for('static', filename='img/add-to-list.png') }}"></button>
-                    {% endif %}
-                    </div>
-                {% endif %}
-            </div>
-            <p> {{ author.complete_name }}</p>
-            {% if book.date!=None %}
-            <p> Published {{ book.date.strftime("%B") }} {{ book.date.day }}, {{ book.date.year }}</p>
-            {% else %}
-            <p>Date not specified</p>
-            {% endif %}
-            {% if book.synopsis %}
-                {% if book.synopsis|length > 500 %}
-                <div>{{ book.synopsis[:500] }}...</div>
-                {% else %}
-                <div> {{ book.synopsis }}</div>
-                {% endif %}
-            {% else %}
-                No synopsis
-            {% endif %}
-            <div class="book_genre"> Genres: {% for g in book.genres.split(';')[:-2] %} {{ g }} /  {% endfor %} {{ book.genres.split(';')[-2] }}</div>
-        </div>
-    </div>
-    <div class="comments">
-    <div class="page_title"> Comments:</div>
-
-        {% if comments %}
-            {% for c in comments %}
-            <div class="comment">
-                <div class="com_header">
-                    <div>
-                        Comment by
-                        <span class="com_name"> {{ c[1].username }}  </span>
-                        <span class="com_date">{{ "%02d" %c[0].date.day}}/{{ "%02d" %c[0].date.month }}/{{ c[0].date.year }} </span>:
-                    </div>
-                    {% if user and user.id==c[1].id %}
-                        <button class="delete clickable" onclick="deleteConfirmation('open')"> Delete account </button>
-                    {% endif %}
-                </div>
-                <div class="com_content">
-                    {{ c[0].content }}
-                </div>
-            </div>
-            {% endfor %}
-
-        {% else %}
-            <p> No comments yet</p>
-        {% endif %}
-    </div>
-
-    <div id="pop-up">
-        <p>Are you sure you want to delete your comment?</p>
-        <div class="choice">
-            <button class="choice_button" onclick="deleteConfirmation('close')"> Cancel </button>
-            <button class="choice_button delete_button" onclick="deleteAccount({{ user.id }})"> Delete comment </button>
-        </div>
-    </div>
 {% endblock %}

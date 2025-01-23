@@ -46,7 +46,7 @@ class Comment(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     book_id = db.Column(db.Integer, db.ForeignKey('books.id'))
     content = db.Column(db.Text)
-    status = db.Column(db.Integer)
+    status = db.Column(db.Integer) #0 for public comment, 1 for personnal note
     date = db.Column(db.Date)
 
 class List(db.Model):
@@ -81,6 +81,19 @@ def add_book_to_list(book_id, user_id):
         db.session.add(list)
         db.session.commit()
 
+def add_grade(user_id, book_id, grade):
+    book_list = db.session.query(List).filter(and_(List.book_id==book_id, List.user_id==user_id)).first()
+    print(book_list)
+    if book_list:
+        print('if')
+        book_list.grade = grade
+        db.session.commit()
+    else:
+        print('else')
+        list = List(user_id=user_id, book_id=book_id, grade=grade, list_name="notsaved")
+        db.session.add(list)
+        db.session.commit()
+
 def remove_book_from_list(book_id, user_id):
     book_list = db.session.query(List).filter(and_(List.book_id==book_id, List.user_id==user_id)).first()
     if book_list.grade:
@@ -91,6 +104,15 @@ def remove_book_from_list(book_id, user_id):
         db.session.delete(book_list)
         db.session.commit()
 
+def add_comment(user_id, book_id, content):
+    comment = Comment(user_id=user_id, book_id=book_id, content=content, status=0, date=date.today())
+    db.session.add(comment)
+    db.session.commit()
+
+
+def delete_comment(comment_id):
+    db.session.query(Comment).filter(Comment.id == comment_id).delete()
+    db.session.commit()
 
 
 def replace_no_cover():

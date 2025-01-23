@@ -209,14 +209,17 @@ def inscription():
 @app.route('/close-up/<int:book_id>', methods=["GET", "POST"])
 def close_up(book_id):
     user = flask.request.args.get('user_id')
+    in_list=None
     if user:
         user = database.db.session.query(database.User).filter(database.User.id == user).first()
-        in_list = database.db.session.query(database.List).filter(and_(database.List.book_id == book_id, database.List.user_id==user.id, database.List.list_name!="notsaved")).first()
+        in_list = database.db.session.query(database.List).filter(and_(database.List.book_id == book_id, database.List.user_id==user.id)).first()
 
+    nb_grade = database.db.session.query(database.List).filter(and_(database.List.book_id==book_id, database.List.grade!=None)).count()
     book = database.db.session.query(database.Book).filter(database.Book.id == book_id).first()
     author = database.db.session.query(database.Author).filter(database.Author.id ==book.author_id).first()
-    comments = database.db.session.query(database.Comment, database.User).join(database.User, database.Comment.user_id==database.User.id).filter(and_(database.Comment.book_id == book_id, database.Comment.status==0)).all()
-    return flask.render_template("book.html.jinja2", book=book, author=author, genres=genres, user=user, in_list=in_list, comments=comments)
+    comments = (database.db.session.query(database.Comment, database.User).join(database.User, database.Comment.user_id==database.User.id).
+                filter(and_(database.Comment.book_id == book_id, database.Comment.status==0)).order_by(database.Comment.date.desc()).all())
+    return flask.render_template("book.html.jinja2", book=book, author=author, genres=genres, user=user, in_list=in_list, comments=comments, nb_grade=nb_grade)
 
 @app.route('/search/<int:nr>/<string:query>', methods=["GET", "POST"])
 def search(nr, query):
@@ -323,18 +326,47 @@ def save():
     user_id = data.get('user_id')
     book_id = data.get('book_id')
     command = data.get('command')
-    print('1')
     if user_id and book_id:
         user_id = int(user_id)
         book_id = int(book_id)
-        print('2')
         if command=="add":
             database.add_book_to_list(book_id, user_id)
         else:
-            print('3')
             database.remove_book_from_list(book_id, user_id)
-    print('4')
     return {'message': 'save changed'}, 200
+
+@app.route('/deleteComment', methods=['POST'])
+def deleteComment():
+    data = flask.request.json
+    comment_id = data.get('comment_id')
+    if comment_id:
+        comment_id = int(comment_id)
+        database.delete_comment(comment_id)
+    return {'message': 'save changed'}, 200
+
+@app.route('/addComment', methods=['POST'])
+def addComment():
+    data = flask.request.json
+    user_id = data.get('user_id')
+    book_id = data.get('book_id')
+    content = data.get('content')
+    if user_id and book_id:
+        database.add_comment(int(user_id), int(book_id), str(content))
+
+    return {'message': 'save changed'}, 200
+
+@app.route('/addGrade', methods=['POST'])
+def addGrade():
+    data = flask.request.json
+    user_id = data.get('user_id')
+    book_id = data.get('book_id')
+    grade = data.get('grade')
+    if user_id and book_id:
+        database.add_grade(int(user_id), int(book_id), int(grade))
+
+    return {'message': 'save changed'}, 200
+
+
 
 
 if __name__ == '__main__':
