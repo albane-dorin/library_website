@@ -15,6 +15,8 @@
         <div class="profil-section">
             {% if user %}
                 <div>{{ user.username }}</div>
+                <div>{{ user.email }}</div>
+                <a href="{{ url_for('home') }}" class="deco">Log out</a>
             {% else %}
                 <p>You can <a href="/connexion"> Log in here.</a></p>
                 <p>No account? <a href="/inscription">Sign up here.</a></p>
@@ -24,10 +26,10 @@
             <div class="side-search">
                 <p class="section-title"><a href="{{ url_for('home', **({'user_id': user.id} if user else {})) }}"> Home page </a> </p>
                 <p>Common research:</p>
-                <p><a>Best score</a></p>
-                <p><a>New books</a></p>
-                <p><a class="quick-search"> Romance</a></p>
-                <p><a>Fantasy</a></p>
+                <p><a href="{{ url_for('search', nr=1, quickSearch='Best', **({'user_id': user.id} if user else {})) }}">Best score</a></p>
+                <p><a href="{{ url_for('search', nr=1, quickSearch='New', **({'user_id': user.id} if user else {})) }}">New books</a></p>
+                <p><a href="{{ url_for('search', nr=1, quickSearch='Romance', **({'user_id': user.id} if user else {})) }}"> Romance</a></p>
+                <p><a href="{{ url_for('search', nr=1, quickSearch='Fantasy', **({'user_id': user.id} if user else {})) }}">Fantasy</a></p>
                 <a></a>
             </div>
             {% if user %}
@@ -42,7 +44,7 @@
     <div class="main">
         <div class="search_bar">
                 <div class="top">
-                    <input type="search" id="query" name="query" value="{{ query }}" placeholder="Enter a title">
+                    <input type="search" id="query" name="query" {% if query %} value="{{ query }}" {% endif %} placeholder="Enter a title">
                     <button style="display: flex" class="buttonfilter" id="showfilter" onclick="changeClasses('show')"> Show more filter </button>
                     <button style="display: none" class="buttonfilter" id="hidefilter" onclick="changeClasses('hid')"> Hid more filter </button>
                 </div>
@@ -88,8 +90,11 @@
                                         <option value="before" {% if date and date.split('/')[1]=="before" %} selected="selected" {% endif %}>Before</option>
                                     </select>
                                 <div class="date">
+                                    <div>
                                     <label>Year:</label>
                                     <input type="number" min="0" max="2050" step="1" id="year" {% if date %} value="{{ date.split('/')[0] }}" {% endif %}>
+                                    </div>
+                                    <button onclick="createURL()"> Search </button>
                                 </div>
                             </div>
                         </div>
@@ -112,8 +117,9 @@
                             {% for book in recents %}
                                 <div class="books" >
                                     <img src="{{ book.img_path }}">
+                                    <div class="book_info">
                                     <a href="{{ url_for('close_up', book_id=book.id, **({'user_id': user.id} if user else {})) }}">
-                                        <p>
+                                        <p title="{{ book.title }}">
                                             {% if book.title|length>30 %}
                                             {{ book.title[:30] }}...
                                             {% else %}
@@ -122,6 +128,7 @@
                                         </p>
                                         <p>{{ r_author[book.author_id][0] }}</p>
                                     </a>
+                                    </div>
                                     <p> {{ book.date.day }}/{{ book.date.month }}/{{ book.date.year }}</p>
                                 </div>
                             {% endfor %}
@@ -143,8 +150,9 @@
                             {% for book in best %}
                                 <div class="books" >
                                     <img src="{{ book.img_path }}">
+                                    <div class="book_info">
                                     <a href="{{ url_for('close_up', book_id=book.id, **({'user_id': user.id} if user else {})) }}">
-                                        <p>
+                                        <p title="{{ book.title }}">
                                             {% if book.title|length>30 %}
                                             {{ book.title[:30] }}...
                                             {% else %}
@@ -153,6 +161,7 @@
                                         </p>
                                         <p>{{ b_author[book.author_id][0] }}</p>
                                     </a>
+                                    </div>
                                     <p> {{ book.date.day }}/{{ book.date.month }}/{{ book.date.year }}</p>
                                 </div>
                             {% endfor %}
@@ -171,38 +180,39 @@
     document.getElementById('query').addEventListener('keypress', function(event) {
         if (event.key==='Enter'){
             event.preventDefault();
-            let query= document.getElementById('query').value;
-            if(query===''){
-                query = 'noQueryEntered-ReturnAllMatchingFilter'
-            }
-            let url = new URL("{{ url_for('search', nr=1, query='') }}" + encodeURIComponent(query), window.location.origin);
-
-            let checkboxes = document.getElementsByName('genre');
-            let selected_genres = "";
-            for (var i = 0; i < checkboxes.length; i++) {
-                if (checkboxes[i].checked) {
-                    selected_genres += encodeURIComponent((checkboxes[i].value.split(',')[0]).split("-")[0]) + "/" ;
-                }
-            }
-            let grade = document.getElementById('note-slider').value;
-            let gradeComp = document.getElementById('gradecomp').value;
-            let date = document.getElementById('year').value;
-
-            if (selected_genres!='') {
-                url.searchParams.append('genre', selected_genres);
-            }
-            if(date!=''){
-                let dateComp = document.getElementById('datecomp').value;
-                url.searchParams.append('date', date+'/'+dateComp);
-            }
-            if(user){
-                url.searchParams.append('user_id', user);
-            }
-            url.searchParams.append('grade', grade+'/'+gradeComp);
-
-            window.location.href = url.toString();
+            createURL()
         }
     });
+
+    function createURL(){
+        let query= document.getElementById('query').value;
+        let url = new URL("{{ url_for('search', nr=1, query='') }}" + encodeURIComponent(query), window.location.origin);
+
+        let checkboxes = document.getElementsByName('genre');
+        let selected_genres = "";
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked) {
+                selected_genres += encodeURIComponent((checkboxes[i].value.split(',')[0]).split("-")[0]) + "/" ;
+            }
+        }
+        let grade = document.getElementById('note-slider').value;
+        let gradeComp = document.getElementById('gradecomp').value;
+        let date = document.getElementById('year').value;
+
+        if (selected_genres!='') {
+            url.searchParams.append('genre', selected_genres);
+        }
+        if(date!=''){
+            let dateComp = document.getElementById('datecomp').value;
+            url.searchParams.append('date', date+'/'+dateComp);
+        }
+        if(user){
+            url.searchParams.append('user_id', user);
+        }
+        url.searchParams.append('grade', grade+'/'+gradeComp);
+
+        window.location.href = url.toString();
+    }
 
     function changeClasses(s){
         event.preventDefault()
@@ -334,6 +344,47 @@
                 console.log(data);
             });
             window.location.href = '{{ url_for('home') }}'
+        }
+    }
+
+    function changeSave(user_id, book_id, s){
+            const book = book_id
+            const user = user_id
+            fetch('/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_id: user, book_id: book, command: s })
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Data sent successfully.");
+                    window.location.reload()
+
+                } else {
+                    console.error("Failed to send data.");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        };
+
+    function showOption(id, s){
+        const button = document.getElementById('more_button' + id);
+        const menu = document.getElementById('more_menu' + id);
+        const menus = document.querySelectorAll('.more_menu')
+        menus.forEach(m => m.classList.add('hidden'))
+        if (menu.classList.contains('hidden')){
+            const rect = button.getBoundingClientRect();
+            console.log(rect)
+            menu.style.top = `${rect.bottom}px`;
+            menu.style.left = `${rect.left}px`;
+            menu.classList.remove('hidden');
+        }
+        else{
+            menu.classList.add('hidden');
         }
     }
 

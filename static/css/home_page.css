@@ -60,13 +60,24 @@
     border-radius: 5px;
   }
 
-.books>a{
+.book_info>a{
     text-align: center;
     text-decoration: underline;
-    margin: 15px 0 0 0;
+    margin-right: 10px;
 }
-.books>a>p{
+.book_info>a>p{
     margin: 0;
+}
+
+.book_info{
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.book_info>img{
+    height: 20px;
+    width: 4px;
 }
 
 .clickable{

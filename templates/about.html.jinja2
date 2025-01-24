@@ -20,7 +20,7 @@
         <div>
             <div> Account created on {{ user.date.strftime("%B") }} {{ user.date.day }} of {{ user.date.year }}</div>
             <p> {{ nb_books }} books saved in a list.</p>
-            <p> {{ nb_grade }} books graded, with an average grade of {{ average_grade }}.</p>
+            <p> {{ nb_grade }} books graded, with an average grade of {{ average_grade|round(2) }}.</p>
             <p> {{ comments }} comments written.</p>
         </div>
         <h2>Your favorite genres are:</h2>

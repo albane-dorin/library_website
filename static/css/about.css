@@ -80,9 +80,6 @@
     margin: 0;
 }
 
-.clickable{
-    cursor: pointer;
-}
 
 #pop-up{
     position: fixed;

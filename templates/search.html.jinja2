@@ -12,7 +12,11 @@
                 <a class="return" href="javascript:window.history.back();"><img src="{{ url_for('static', filename='/img/return.png') }}"> </a>
                 <div class="search-header">
                     <div class="search-title">
+                        {% if quick %}
+                        {{ quick }} books:
+                        {% else %}
                         Result for "{{ query }}":
+                        {% endif %}
                     </div>
                     {% if nr!=pages %}
                     <div>Show results {{ 1+(60*(nr-1)) }}-{{ 60*nr }} over {{ total }} </div>
@@ -22,18 +26,19 @@
                 </div>
             <div class="search-header-pages">
                 {% if nr!=1 %}
-                    <a href="{{ url_for('search', query=query, nr=(nr-1), genre=genre, date=date, grade=grade, **({'user_id': user.id} if user else {})) }}">Previous page</a>
+                    <a href="{{ url_for('search', query=query, nr=(nr-1), genre=genre, date=date, grade=grade, quickSearch=quick, **({'user_id': user.id} if user else {})) }}">Previous page</a>
                 {% endif %}
                 {% if nr!=pages %}
-                    <a href="{{ url_for('search', query=query, nr=(1+nr), genre=genre, date=date, grade=grade, **({'user_id': user.id} if user else {})) }}">Next page</a>
+                    <a href="{{ url_for('search', query=query, nr=(1+nr), genre=genre, date=date, grade=grade, quickSearch=quick, **({'user_id': user.id} if user else {})) }}">Next page</a>
                 {% endif %}
             </div>
                 <div class="books_list">
                     {% for book in results %}
                         <div class="books" >
                             <img src="{{ book.img_path }}">
+                            <div class="book_info">
                             <a href="{{ url_for('close_up', book_id=book.id, **({'user_id': user.id} if user else {})) }}">
-                                <p>
+                                <p title="{{ book.title }}">
                                     {% if book.title|length>30 %}
                                     {{ book.title[:30] }}...
                                     {% else %}
@@ -42,6 +47,17 @@
                                 </p>
                                 <p>{{ author[book.author_id][0] }}</p>
                             </a>
+                            {% if user %}
+                                <img id="more_button{{ book.id }}" src="{{ url_for('static', filename="img/more-button.png") }}" onclick="showOption({{ book.id }}, '')" class="clickable">
+                                <div class="more_menu hidden" id="more_menu{{ book.id }}">
+                                {% if blist[book.id] %}
+                                    <div class="menu-option" onclick="changeSave({{ user.id }}, {{ book.id }}, 'remove')">Unsave book</div>
+                                {% else %}
+                                    <div class="menu-option" onclick="changeSave({{ user.id }}, {{ book.id }}, 'add')">Save book</div>
+                                {% endif %}
+                                </div>
+                            {% endif %}
+                            </div>
                             <p> {{ book.date.day }}/{{ book.date.month }}/{{ book.date.year }}</p>
                         </div>
                     {% endfor %}
@@ -49,8 +65,8 @@
                 <div class="pages">
                     <div>
                     {% if nr!=1 %}
-                        <a href="{{ url_for('search', query=query, nr=(1), genre=genre, date=date, grade=grade, **({'user_id': user.id} if user else {})) }}" class="nr">First page</a>
-                        <a href="{{ url_for('search', query=query, nr=(nr-1), genre=genre, date=date, grade=grade, **({'user_id': user.id} if user else {})) }}" class="nr">Previous page</a>
+                        <a href="{{ url_for('search', query=query, nr=(1), genre=genre, date=date, grade=grade, quickSearch=quick, **({'user_id': user.id} if user else {})) }}" class="nr">First page</a>
+                        <a href="{{ url_for('search', query=query, nr=(nr-1), genre=genre, date=date, grade=grade, quickSearch=quick, **({'user_id': user.id} if user else {})) }}" class="nr">Previous page</a>
                     {% endif %}
                     </div>
 
@@ -58,22 +74,22 @@
 
                     {% if pages<=9 %}
                         {% for i in range(pages) %}
-                            <a href="{{ url_for('search', query=query, nr=loop.index, genre=genre, date=date, grade=grade, **({'user_id': user.id} if user else {})) }}" class="nr {{ 'current' if loop.index == nr else '' }}">{{ loop.index }}</a>
+                            <a href="{{ url_for('search', query=query, nr=loop.index, genre=genre, date=date, grade=grade, quickSearch=quick, **({'user_id': user.id} if user else {})) }}" class="nr {{ 'current' if loop.index == nr else '' }}">{{ loop.index }}</a>
                         {% endfor %}
                     {% elif nr<6 %}
                         {% for i in range(9) %}
-                            <a href="{{ url_for('search', query=query, nr=loop.index, genre=genre, date=date, grade=grade, **({'user_id': user.id} if user else {})) }}" class="nr {{ 'current' if loop.index == nr else '' }}">{{ loop.index }}</a>
+                            <a href="{{ url_for('search', query=query, nr=loop.index, genre=genre, date=date, grade=grade, quickSearch=quick, **({'user_id': user.id} if user else {})) }}" class="nr {{ 'current' if loop.index == nr else '' }}">{{ loop.index }}</a>
                         {% endfor %}
                         ...
                     {% elif nr>(pages-6) %}
                         ...
-                        {% for i in range(pages-8,pages+1) %}
-                        <a href="{{ url_for('search', query=query, nr=pages-9+loop.index, genre=genre, date=date, grade=grade, **({'user_id': user.id} if user else {})) }}" class="nr {{ 'current' if pages-9+loop.index == nr else '' }}">{{ pages-9+loop.index }}</a>
+                        {% for i in range(pages-8,1+pages) %}
+                        <a href="{{ url_for('search', query=query, nr=pages-9+loop.index, genre=genre, date=date, grade=grade, quickSearch=quick, **({'user_id': user.id} if user else {})) }}" class="nr {{ 'current' if pages-9+loop.index == nr else '' }}">{{ pages-9+loop.index }}</a>
                         {% endfor %}
                     {% else %}
                         ...
-                        {% for i in range(nr-4,nr+5) %}
-                        <a href="{{ url_for('search', query=query, nr=nr-5+loop.index, genre=genre, date=date, grade=grade, **({'user_id': user.id} if user else {})) }}" class="nr {{ 'current' if loop.index == 5 else '' }}">{{ nr-5+loop.index }}</a>
+                        {% for i in range(nr-4,5+nr) %}
+                        <a href="{{ url_for('search', query=query, nr=nr-5+loop.index, genre=genre, date=date, grade=grade, quickSearch=quick, **({'user_id': user.id} if user else {})) }}" class="nr {{ 'current' if loop.index == 5 else '' }}">{{ nr-5+loop.index }}</a>
                         {% endfor %}
                         ...
                     {% endif %}
@@ -81,8 +97,8 @@
 
                     <div>
                     {% if nr!=pages %}
-                        <a href="{{ url_for('search', query=query, nr=(1+nr), genre=genre, date=date, grade=grade, **({'user_id': user.id} if user else {})) }}" class="nr">Next page</a>
-                        <a href="{{ url_for('search', query=query, nr=(pages), genre=genre, date=date, grade=grade, **({'user_id': user.id} if user else {})) }}" class="nr">Last page</a>
+                        <a href="{{ url_for('search', query=query, nr=(1+nr), genre=genre, date=date, grade=grade, quickSearch=quick, **({'user_id': user.id} if user else {})) }}" class="nr">Next page</a>
+                        <a href="{{ url_for('search', query=query, nr=(pages), genre=genre, date=date, grade=grade, quickSearch=quick, **({'user_id': user.id} if user else {})) }}" class="nr">Last page</a>
 
                     {% endif %}
                     </div>

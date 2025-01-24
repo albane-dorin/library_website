@@ -19,8 +19,9 @@
                 {% else %}
                     <p> No grade yet </p>
                 {% endif %}
-            {% if user %}
             </div>
+            {% if user %}
+
             <div class="rating">
                 <p class="rate_title">Your rating:</p>
                 {% if in_list and in_list.grade %}
@@ -250,29 +251,6 @@
             });
         };
 
-        function changeSave(user_id, book_id, s){
-            const book = book_id
-            const user = user_id
-            fetch('/save', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ user_id: user, book_id: book, command: s })
-            })
-            .then(response => {
-                if (response.ok) {
-                    console.log("Data sent successfully.");
-                    window.location.reload()
-
-                } else {
-                    console.error("Failed to send data.");
-                }
-            })
-            .catch(error => {
-                console.error("Error:", error);
-            });
-        };
 
         function showDescription(){
             const synopsis = document.getElementById("synopsis");

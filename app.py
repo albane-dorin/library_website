@@ -24,8 +24,22 @@ cached_research = {
     'query': None,
     'filters': {},
     'results': [],
-    'total': 0
+    'total': 0,
 }
+
+
+testl = {"one":10,"two":6,"three":6,"four":2,"five":1,"six":1}
+testl = dict(sorted(testl.items(), key=lambda item: item[1]))
+print(testl)
+i=0
+nb=0
+for el in testl.items():
+    if el[1]>nb:
+        nb = el[1]
+        i+=1
+    testl[el[0]] = i
+print(testl)
+
 
 #Cette fonction permet de vérifier la validité des formulaires d'inscription et de connexion
 def form_valide(form, i):  # 0 pour connexion, 1 pour inscription
@@ -76,20 +90,33 @@ def form_valide(form, i):  # 0 pour connexion, 1 pour inscription
 
     return result, errors
 
-def research_book(query, genre, grade, date):
-    grade= grade.split('/')
-    if grade[1] == "above":
-        result = database.db.session.query(database.Book).filter(
-            and_(
-                database.Book.title.like("%{}%".format(query)),
-                database.Book.grade > grade[0],
-            )).all()
+def research_book(query, genre, grade, date, quick):
+    if quick:
+        if quick == 'Best':
+            result = database.db.session.query(database.Book).order_by(database.Book.grade.desc()).all()
+        elif quick == 'New':
+            result = database.db.session.query(database.Book).order_by(database.Book.date.desc()).all()
+        elif quick == 'Romance':
+            genre = 'romance/'
+            result = database.db.session.query(database.Book).all()
+        elif quick == 'Fantasy':
+            genre='fantasy/'
+            result = database.db.session.query(database.Book).all()
+
     else:
-        result = database.db.session.query(database.Book).filter(
-            and_(
-                database.Book.title.like("%{}%".format(query)),
-                database.Book.grade < grade[0],
-            )).all()
+        grade= grade.split('/')
+        if grade[1] == "above":
+            result = database.db.session.query(database.Book).filter(
+                and_(
+                    database.Book.title.like("%{}%".format(query)),
+                    database.Book.grade > grade[0],
+                )).all()
+        else:
+            result = database.db.session.query(database.Book).filter(
+                and_(
+                    database.Book.title.like("%{}%".format(query)),
+                    database.Book.grade < grade[0],
+                )).all()
     if genre:
         genre = genre.split('/')[:-1]
         for b in result[:]:
@@ -162,11 +189,16 @@ def home():
     best = database.db.session.query(database.Book).order_by(database.Book.grade.desc())[:50]
     r_author = {}
     b_author = {}
+    r_list = {}
+    b_list= {}
     for b in recents:
         r_author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
+        if user:
+            r_list[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id==user.id, database.List.list_name!="notsaved")).first()
     for b in best:
         b_author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
-    return flask.render_template('home.html.jinja2', recents=recents, r_author =r_author , best=best, b_author=b_author, genres=genres, user=user)
+        r_list[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id == user.id, database.List.list_name != "notsaved")).first()
+    return flask.render_template('home.html.jinja2', recents=recents, r_author =r_author , best=best, b_author=b_author, r_list=r_list, b_list=b_list, genres=genres, user=user)
 
 
 @app.route('/connexion', methods=["GET", "POST"])
@@ -221,34 +253,38 @@ def close_up(book_id):
                 filter(and_(database.Comment.book_id == book_id, database.Comment.status==0)).order_by(database.Comment.date.desc()).all())
     return flask.render_template("book.html.jinja2", book=book, author=author, genres=genres, user=user, in_list=in_list, comments=comments, nb_grade=nb_grade)
 
-@app.route('/search/<int:nr>/<string:query>', methods=["GET", "POST"])
-def search(nr, query):
+@app.route('/search/<int:nr>', methods=["GET", "POST"])
+def search(nr):
     user = flask.request.args.get('user_id')
     if user:
         user = database.db.session.query(database.User).filter(database.User.id == user).first()
 
     global cached_research
-    if query== 'noQueryEntered-ReturnAllMatchingFilter':
-        query=''
+    query= flask.request.args.get('query')
     genre = flask.request.args.get('genre')
     grade = flask.request.args.get('grade')
     date = flask.request.args.get('date')
-    if cached_research['query']!=query or cached_research['filters']!= {'genre': genre, 'date': date, 'grade': grade}:
-        results, total = research_book(query, genre, grade, date)
+    quick = flask.request.args.get('quickSearch')
+
+    if cached_research['query']!=query or cached_research['filters']!= {'genre': genre, 'date': date, 'grade': grade, 'quick':quick}:
+        results, total = research_book(query, genre, grade, date, quick)
         cached_research={
             'query': query,
-            'filters': {'genre': genre, 'date': date, 'grade': grade},
+            'filters': {'genre': genre, 'date': date, 'grade': grade, 'quick':quick},
             'results': results,
-            'total': total
+            'total': total,
+            'quick': ''
         }
     pages = cached_research['total']//60 + 1
     author={}
+    blist={}
     for b in cached_research['results'][60*(nr-1):60*nr]:
-        author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(
-            database.Author.id == b.author_id).first()
+        author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
+        if user:
+            blist[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id == user.id, database.List.list_name != "notsaved")).first()
 
     return flask.render_template("search.html.jinja2", query=query, nr=nr, results=cached_research['results'][60*(nr-1):60*nr], total=cached_research['total'], pages=pages, author=author,
-                                 genres=genres, genre=genre, date=date, grade=grade, user=user)
+                                 blist=blist, genres=genres, genre=genre, date=date, grade=grade, quick=quick, user=user)
 
 @app.route('/about/<int:user_id>')
 def about(user_id):
@@ -269,10 +305,14 @@ def about(user_id):
         for genre in genres:
             c = 0
             for el in book_list:
-                for g in el[1].genres.split(';'):
-                    if g==genre:
-                        c+=1
+                book_genres = el[1].genres.split(';')
+                l = len(book_genres)
+                print(book_genres)
+                for i in range(l-1):
+                    if book_genres[i]==genre:
+                        c+= l-i
             fav_genre[genre]= c
+        print(fav_genre)
         fav_genre = list(dict(sorted(fav_genre.items(), key=lambda item: item[1], reverse=True)))[:3]
         for el in book_list:
             has_genre=False
@@ -294,7 +334,6 @@ def book_list(user_id):
     books = (database.db.session.query(database.List, database.Book).
              join(database.List, database.Book.id==database.List.book_id).
              filter(database.List.user_id==user.id))
-    print(books.count())
     if order=='desc':
         if type=='grade':
             books = books.order_by(database.List.grade, database.List.date).all()
@@ -309,7 +348,6 @@ def book_list(user_id):
             books = books.order_by(database.Book.title, database.List.date.desc()).all()
         else:
             books = books.order_by(database.List.date.desc()).all()
-    print(len(books))
 
     return flask.render_template("list.html.jinja2", user=user, genres=genres, books=books, order=order, type=type)
 
