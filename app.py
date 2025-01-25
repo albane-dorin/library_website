@@ -28,18 +28,6 @@ cached_research = {
 }
 
 
-testl = {"one":10,"two":6,"three":6,"four":2,"five":1,"six":1}
-testl = dict(sorted(testl.items(), key=lambda item: item[1]))
-print(testl)
-i=0
-nb=0
-for el in testl.items():
-    if el[1]>nb:
-        nb = el[1]
-        i+=1
-    testl[el[0]] = i
-print(testl)
-
 
 #Cette fonction permet de vérifier la validité des formulaires d'inscription et de connexion
 def form_valide(form, i):  # 0 pour connexion, 1 pour inscription
@@ -136,6 +124,20 @@ def research_book(query, genre, grade, date, quick):
             filter_result = [b for b in result if b.date and b.date.year<int(date[0])]
         return filter_result, len(filter_result)
     return result, len(result)
+
+def find_fav_genre(book_list):
+    fav_genre = {}
+    for genre in genres:
+        c = 0
+        for el in book_list:
+            book_genres = el[1].genres.split(';')
+            l = len(book_genres)
+            for i in range(l - 1):
+                if book_genres[i] == genre:
+                    c += l - i
+        fav_genre[genre] = c
+    return list(dict(sorted(fav_genre.items(), key=lambda item: item[1], reverse=True)))[:3]
+
 
 def find_fav_books(el, list, nb):
     if not el[0].grade:
@@ -273,7 +275,6 @@ def search(nr):
             'filters': {'genre': genre, 'date': date, 'grade': grade, 'quick':quick},
             'results': results,
             'total': total,
-            'quick': ''
         }
     pages = cached_research['total']//60 + 1
     author={}
@@ -285,6 +286,57 @@ def search(nr):
 
     return flask.render_template("search.html.jinja2", query=query, nr=nr, results=cached_research['results'][60*(nr-1):60*nr], total=cached_research['total'], pages=pages, author=author,
                                  blist=blist, genres=genres, genre=genre, date=date, grade=grade, quick=quick, user=user)
+
+@app.route('/recommandation/<int:user_id>/<int:nr>')
+def recommandation(user_id, nr):
+    user = database.db.session.query(database.User).filter(database.User.id == user_id).first()
+
+    global cached_research
+
+    if cached_research['query'] != 'recommandations':
+        all_books = (database.db.session.query(database.List, database.Book).join(database.List, database.Book.id==database.List.book_id).
+                     filter(database.List.user_id == user_id).all())
+        book_list = (database.db.session.query(database.List, database.Book).join(database.List, database.Book.id==database.List.book_id).
+                     filter(and_(database.List.user_id == user_id, database.List.grade>=4)).order_by(database.List.date.desc()))[:30]
+        results = []
+        fav_genre = find_fav_genre(all_books)
+        for b in book_list:
+            for sim in b[1].similar.split(';'):
+                add = True
+                has_genre = True
+                sim_book = database.db.session.query(database.Book).filter(database.Book.id==int(sim)).first()
+                for book in all_books:
+                    if book[1].id == sim_book.id:
+                        add = False
+                        break
+                if sim_book.genres != '':
+                    has_genre = False
+                    for genre in sim_book.genres.split(';'):
+                        if genre in fav_genre:
+                            has_genre=True
+                            break
+
+                if has_genre and add:
+                    results.append(sim_book)
+        cached_research = {
+            'query': 'recommandations',
+            'filters': {},
+            'results': results,
+            'total': len(results),
+        }
+    pages = cached_research['total'] // 60 + 1
+    author = {}
+    blist = {}
+    for b in cached_research['results'][60 * (nr - 1):60 * nr]:
+        author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
+        blist[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id == user.id, database.List.list_name != "notsaved")).first()
+
+    return flask.render_template("search.html.jinja2", query=cached_research['query'], nr=nr,
+                                 results=cached_research['results'][60 * (nr - 1):60 * nr],
+                                 total=cached_research['total'], pages=pages, author=author,
+                                 blist=blist, genres=genres, genre=None, date=None, grade=None, quick=None,
+                                 user=user)
+
 
 @app.route('/about/<int:user_id>')
 def about(user_id):
@@ -301,19 +353,7 @@ def about(user_id):
     fav_genre = {}
     fav_books = [None] * 5
     if nb_books != 0:
-
-        for genre in genres:
-            c = 0
-            for el in book_list:
-                book_genres = el[1].genres.split(';')
-                l = len(book_genres)
-                print(book_genres)
-                for i in range(l-1):
-                    if book_genres[i]==genre:
-                        c+= l-i
-            fav_genre[genre]= c
-        print(fav_genre)
-        fav_genre = list(dict(sorted(fav_genre.items(), key=lambda item: item[1], reverse=True)))[:3]
+        fav_genre = find_fav_genre(book_list)
         for el in book_list:
             has_genre=False
             for g in fav_genre:

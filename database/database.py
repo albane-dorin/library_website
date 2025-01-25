@@ -4,6 +4,7 @@ import json
 import random
 from datetime import datetime, timedelta, date
 from sqlalchemy import Index, func, update, select, and_
+import sys
 
 
 db = SQLAlchemy()
@@ -39,6 +40,8 @@ class Book(db.Model):
     img_path = db.Column(db.Text)
     grade = db.Column(db.Float(10,3))
     genres = db.Column(db.Text)
+    shelves = db.Column(db.Text)
+    similar = db.Column(db.Text)
 
 class Comment(db.Model):
     __tablename__ = 'comments'
@@ -90,7 +93,7 @@ def add_grade(user_id, book_id, grade):
         db.session.commit()
     else:
         print('else')
-        list = List(user_id=user_id, book_id=book_id, grade=grade, list_name="notsaved")
+        list = List(user_id=user_id, book_id=book_id, grade=grade, date=date.today(), list_name="notsaved")
         db.session.add(list)
         db.session.commit()
 
@@ -127,9 +130,7 @@ def replace_no_cover():
 
 def add_book_genres():
     ids = db.session.query(Book.id).all()
-    i = 0
     for id in ids:
-        i+=1
         with open("./jsons/goodreads_book_genres_initial.json") as file:
             for line in file:
                 data = json.loads(line)
@@ -140,8 +141,84 @@ def add_book_genres():
                         genre += g + ";"
                     book.genres = genre
                     break
-        print(i)
     db.session.commit()
+
+def add_book_shelves():
+    ids = db.session.query(Book.id).all()
+    j=0
+    for id in ids:
+        with open("./jsons/goodreads_books.json") as file:
+            for line in file:
+                data = json.loads(line)
+                if data['book_id'] == str(id[0]):
+                    book = db.session.query(Book).filter_by(id=data["book_id"]).first()
+                    shelves = {}
+                    book_shelves = ''
+                    for s in data["popular_shelves"]:
+                        if 'read' not in s["name"] and 'own' not in s['name']:
+                            shelves[s["name"]] = int(s["count"])
+                    shelves = dict(sorted(shelves.items(), key=lambda item: item [1]))
+                    i = 0
+                    nb = 0
+                    for el in shelves.items():
+                        book_shelves += el[0] + ':'
+                        if el[1] > nb:
+                            nb = el[1]
+                            i += 1
+                        book_shelves += str(i) + ';'
+                    book.shelves = book_shelves[:-1]
+                    break
+        j+=1
+        print(j)
+    db.session.commit()
+
+def add_sim_book():
+    books = db.session.query(Book).all()
+    print(len(books))
+    j = 0
+    for b in books:
+        j += 1
+        print(j)
+        if not b.shelves:
+            continue
+        book_shelves = {s.split(':')[0]:s.split(':')[1] for s in b.shelves.split(';')}
+        sim = {}
+        book_sim = ''
+        nb=0
+        for b2 in books:
+            if b2.id != b.id:
+                if b2.genres!='' and b.genres!='':
+                    common = False
+                    for g in b2.genres.split(';')[:-1]:
+                        if g!="fiction" and g in b.genres:
+                            common=True
+                            nb+=1
+                            break
+                else: common = True
+
+                if common:
+                    match = 0
+                    if b2.shelves!='':
+                        for s in b2.shelves.split(';'):
+                            if s.split(':')[0] in book_shelves.keys():
+                                match += int(book_shelves[s.split(':')[0]]) + int(s.split(':')[1])
+                    sim[b2.id] = match
+        sim = dict(sorted(sim.items(), key=lambda item: item [1], reverse=True))
+        i=0
+        for el in sim.keys():
+            book_sim += str(el) + ';'
+            i+=1
+            if i==30:
+                break
+        b.similar = book_sim[:-1]
+        print('yes')
+
+    db.session.commit()
+
+
+
+
+
 
 def add_users():
     with open("./jsons/nom.json") as file:
