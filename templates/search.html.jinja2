@@ -26,6 +26,7 @@
                         <div>Show results {{ 1+(60*(nr-1)) }}-{{ total }} over {{ total }} </div>
                     {% endif %}
                 </div>
+            {%  block page_top %}
             <div class="search-header-pages">
                 {% if nr!=1 %}
                     <a href="{{ url_for('search', query=query, nr=(nr-1), genre=genre, date=date, grade=grade, quickSearch=quick, **({'user_id': user.id} if user else {})) }}">Previous page</a>
@@ -34,6 +35,7 @@
                     <a href="{{ url_for('search', query=query, nr=(1+nr), genre=genre, date=date, grade=grade, quickSearch=quick, **({'user_id': user.id} if user else {})) }}">Next page</a>
                 {% endif %}
             </div>
+            {% endblock %}
                 <div class="books_list">
                     {% for book in results %}
                         <div class="books" >
@@ -52,10 +54,15 @@
                             {% if user %}
                                 <img id="more_button{{ book.id }}" src="{{ url_for('static', filename="img/more-button.png") }}" onclick="showOption({{ book.id }}, '')" class="clickable">
                                 <div class="more_menu hidden" id="more_menu{{ book.id }}">
-                                {% if blist[book.id] %}
-                                    <div class="menu-option" onclick="changeSave({{ user.id }}, {{ book.id }}, 'remove')">Unsave book</div>
+                                {% if blist[book.id] and blist[book.id].list_name != None %}
+                                    <div class="menu-option" onclick="changeSave({{ user.id }}, {{ book.id }}, 'remove', 'save')">Unsave book</div>
                                 {% else %}
-                                    <div class="menu-option" onclick="changeSave({{ user.id }}, {{ book.id }}, 'add')">Save book</div>
+                                    <div class="menu-option" onclick="changeSave({{ user.id }}, {{ book.id }}, 'add', 'save')">Save book</div>
+                                {% endif %}
+                                {% if blist[book.id] and blist[book.id].is_read %}
+                                    <div class="menu-option" onclick="changeSave({{ user.id }}, {{ book.id }}, 'remove', 'read')">Unmark as read</div>
+                                {% else %}
+                                    <div class="menu-option" onclick="changeSave({{ user.id }}, {{ book.id }}, 'add', 'read')">Mark as read</div>
                                 {% endif %}
                                 </div>
                             {% endif %}
@@ -64,6 +71,7 @@
                         </div>
                     {% endfor %}
                 </div>
+                {%  block page_bottom %}
                 <div class="pages">
                     <div>
                     {% if nr!=1 %}
@@ -105,6 +113,7 @@
                     {% endif %}
                     </div>
                 </div>
+                {% endblock %}
             </div>
         </div>
  {% endblock %}

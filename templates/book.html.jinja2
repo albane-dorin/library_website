@@ -59,11 +59,16 @@
                 <p class="book_title">{{ book.title }}</p>
                 {% if user %}
                 <div>
-                <!-- <button> Mark as read </button> -->
-                    {% if in_list and in_list.list_name!='notsaved' %}
-                        <button onclick="changeSave({{ user.id }}, {{ book.id }}, 'remove')" title="Remove from saved book" class="add_list"> <img src="{{ url_for('static', filename='img/remove-from-list.png') }}"> </button>
+                    {% if in_list and in_list.is_read %}
+                        <button onclick="changeSave({{ user.id }}, {{ book.id }}, 'remove', 'read')" title="Unmark book as read" class="add"> <img src="{{ url_for('static', filename='img/marked-as-read.png') }}"> </button>
                     {% else %}
-                        <button onclick="changeSave({{ user.id }}, {{ book.id }}, 'add')" title="Save book in list" class="add_list"> <img src="{{ url_for('static', filename='img/add-to-list.png') }}"></button>
+                        <button onclick="changeSave({{ user.id }}, {{ book.id }}, 'add', 'read')" title="Mark book as read" class="add"> <img src="{{ url_for('static', filename='img/mark-as-read.png') }}"></button>
+                    {% endif %}
+                <!-- <button> Mark as read </button> -->
+                    {% if in_list and in_list.list_name != None %}
+                        <button onclick="changeSave({{ user.id }}, {{ book.id }}, 'remove', 'save')" title="Remove from saved book" class="add list"> <img src="{{ url_for('static', filename='img/remove-from-list.png') }}"> </button>
+                    {% else %}
+                        <button onclick="changeSave({{ user.id }}, {{ book.id }}, 'add', 'save')" title="Save book in list" class="add list"> <img src="{{ url_for('static', filename='img/add-to-list.png') }}"></button>
                     {% endif %}
                     </div>
                 {% endif %}

@@ -60,6 +60,7 @@ class List(db.Model):
     list_name = db.Column(db.Text)
     grade = db.Column(db.Float(10,3))
     date = db.Column(db.Date)
+    is_read = db.Column(db.Boolean)
 
 
 def new_user(username, password, mail):
@@ -74,38 +75,59 @@ def delete_user(id):
     db.session.commit()
 
 def add_book_to_list(book_id, user_id):
-    book_list = db.session.query(List).filter(and_(List.book_id==book_id, List.user_id==user_id, List.list_name=="notsaved")).first()
+    book_list = db.session.query(List).filter(and_(List.book_id==book_id, List.user_id==user_id, List.list_name==None)).first()
     if book_list:
         book_list.list_name = "My books"
         book_list.date = date.today()
         db.session.commit()
     else:
-        list = List(user_id=user_id, book_id=book_id, list_name="My books", date=date.today())
-        db.session.add(list)
-        db.session.commit()
-
-def add_grade(user_id, book_id, grade):
-    book_list = db.session.query(List).filter(and_(List.book_id==book_id, List.user_id==user_id)).first()
-    print(book_list)
-    if book_list:
-        print('if')
-        book_list.grade = grade
-        db.session.commit()
-    else:
-        print('else')
-        list = List(user_id=user_id, book_id=book_id, grade=grade, date=date.today(), list_name="notsaved")
+        list = List(user_id=user_id, book_id=book_id, list_name="My books", date=date.today(), is_read=False)
         db.session.add(list)
         db.session.commit()
 
 def remove_book_from_list(book_id, user_id):
     book_list = db.session.query(List).filter(and_(List.book_id==book_id, List.user_id==user_id)).first()
     if book_list.grade:
-        book_list.list_name = "notsaved"
+        book_list.list_name = None
         book_list.date = None
         db.session.commit()
     else:
         db.session.delete(book_list)
         db.session.commit()
+
+
+
+def add_grade(user_id, book_id, grade):
+    book_list = db.session.query(List).filter(and_(List.book_id==book_id, List.user_id==user_id)).first()
+    if book_list:
+        book_list.grade = grade
+        db.session.commit()
+    else:
+        list = List(user_id=user_id, book_id=book_id, grade=grade, date=date.today(), is_read=False)
+        db.session.add(list)
+        db.session.commit()
+
+
+
+def mark_as_read(book_id, user_id):
+    book_list = db.session.query(List).filter(and_(List.book_id==book_id, List.user_id==user_id)).first()
+    if book_list:
+        book_list.is_read = True
+        db.session.commit()
+    else:
+        list = List(user_id=user_id, book_id=book_id, date=date.today(), is_read=True)
+        db.session.add(list)
+        db.session.commit()
+
+def unmark_as_read(book_id, user_id):
+    book_list = db.session.query(List).filter(and_(List.book_id == book_id, List.user_id == user_id)).first()
+    if book_list.grade or book_list.list_name:
+        book_list.is_read = False
+        db.session.commit()
+    else:
+        db.session.delete(book_list)
+        db.session.commit()
+
 
 def add_comment(user_id, book_id, content):
     comment = Comment(user_id=user_id, book_id=book_id, content=content, status=0, date=date.today())
@@ -116,6 +138,52 @@ def add_comment(user_id, book_id, content):
 def delete_comment(comment_id):
     db.session.query(Comment).filter(Comment.id == comment_id).delete()
     db.session.commit()
+
+
+
+
+def list_genres():
+    genres=[]
+    books =db.session.query(Book).all()
+    for b in books:
+        bgenre = b.genres.split(";")
+        for g in bgenre:
+            if g not in genres and g!='':
+                genres.append(g)
+    return(genres)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def replace_no_cover():
@@ -235,16 +303,6 @@ def add_users():
 
 
 
-def list_genres():
-    genres=[]
-    books =db.session.query(Book).all()
-    for b in books:
-        bgenre = b.genres.split(";")
-        for g in bgenre:
-            if g not in genres and g!='':
-                genres.append(g)
-    return(genres)
-
 def add_books_to_lists():
     users = db.session.query(User).all()
     for u in users:
@@ -334,4 +392,28 @@ def add_comments():
                     comment =Comment(user_id=uid, book_id=bid, content=content, status=0)
                     db.session.add(comment)
                 print('book ', b, ' done')
+    db.session.commit()
+
+def delelete_author():
+    authors = db.session.query(Author).all()
+    for a in authors:
+        if a.nr_book==0:
+            db.session.delete(a)
+    db.session.commit()
+
+def add_read():
+    users = db.session.query(User).all()
+    for u in users:
+        books = db.session.query(List).filter(List.user_id==u.id).all()
+        print(len(books))
+        if len(books)>50:
+            nr = random.randint(50,len(books))
+        else: nr= 0
+        i=0
+        for b in books:
+            if i<nr:
+                b.is_read = True
+            else:
+                b.is_read = False
+            i+=1
     db.session.commit()

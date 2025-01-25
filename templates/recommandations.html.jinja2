@@ -1,0 +1,57 @@
+{% extends 'search.html.jinja2' %}
+
+
+{%  block page_top %}
+    <div class="search-header-pages">
+        {% if nr!=1 %}
+            <a href="{{ url_for('recommandation', nr=(nr-1), user_id=user.id) }}">Previous page</a>
+        {% endif %}
+        {% if nr!=pages %}
+            <a href="{{ url_for('recommandation', user_id=user.id, nr=(1+nr)) }}">Next page</a>
+        {% endif %}
+    </div>
+{% endblock %}
+
+ {%  block page_bottom %}
+                <div class="pages">
+                    <div>
+                    {% if nr!=1 %}
+                        <a href="{{ url_for('recommandation', user_id=user.id, nr=(1)) }}" class="nr">First page</a>
+                        <a href="{{ url_for('recommandation', user_id=user.id, nr=(nr-1)) }}" class="nr">Previous page</a>
+                    {% endif %}
+                    </div>
+
+                    <div>
+
+                    {% if pages<=9 %}
+                        {% for i in range(pages) %}
+                            <a href="{{ url_for('recommandation', user_id=user.id, nr=loop.index) }}" class="nr {{ 'current' if loop.index == nr else '' }}">{{ loop.index }}</a>
+                        {% endfor %}
+                    {% elif nr<6 %}
+                        {% for i in range(9) %}
+                            <a href="{{ url_for('recommandation', user_id=user.id, nr=loop.index) }}" class="nr {{ 'current' if loop.index == nr else '' }}">{{ loop.index }}</a>
+                        {% endfor %}
+                        ...
+                    {% elif nr>(pages-6) %}
+                        ...
+                        {% for i in range(pages-8,1+pages) %}
+                        <a href="{{ url_for('recommandation', user_id=user.id, nr=pages-9+loop.index) }}" class="nr {{ 'current' if pages-9+loop.index == nr else '' }}">{{ pages-9+loop.index }}</a>
+                        {% endfor %}
+                    {% else %}
+                        ...
+                        {% for i in range(nr-4,5+nr) %}
+                        <a href="{{ url_for('recommandation', user_id=user.id, nr=nr-5+loop.index) }}" class="nr {{ 'current' if loop.index == 5 else '' }}">{{ nr-5+loop.index }}</a>
+                        {% endfor %}
+                        ...
+                    {% endif %}
+                    </div>
+
+                    <div>
+                    {% if nr!=pages %}
+                        <a href="{{ url_for('recommandation', user_id=user.id, nr=(1+nr)) }}" class="nr">Next page</a>
+                        <a href="{{ url_for('recommandation', user_id=user.id, nr=(pages)) }}" class="nr">Last page</a>
+
+                    {% endif %}
+                    </div>
+                </div>
+                {% endblock %}

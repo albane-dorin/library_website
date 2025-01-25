@@ -90,7 +90,6 @@ def research_book(query, genre, grade, date, quick):
         elif quick == 'Fantasy':
             genre='fantasy/'
             result = database.db.session.query(database.Book).all()
-
     else:
         grade= grade.split('/')
         if grade[1] == "above":
@@ -196,10 +195,10 @@ def home():
     for b in recents:
         r_author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
         if user:
-            r_list[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id==user.id, database.List.list_name!="notsaved")).first()
+            r_list[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id==user.id, database.List.list_name!=None)).first()
     for b in best:
         b_author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
-        r_list[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id == user.id, database.List.list_name != "notsaved")).first()
+        r_list[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id == user.id, database.List.list_name!=None)).first()
     return flask.render_template('home.html.jinja2', recents=recents, r_author =r_author , best=best, b_author=b_author, r_list=r_list, b_list=b_list, genres=genres, user=user)
 
 
@@ -267,12 +266,23 @@ def search(nr):
     grade = flask.request.args.get('grade')
     date = flask.request.args.get('date')
     quick = flask.request.args.get('quickSearch')
+    hide = flask.request.args.get('hide')
 
-    if cached_research['query']!=query or cached_research['filters']!= {'genre': genre, 'date': date, 'grade': grade, 'quick':quick}:
+    if cached_research['query']!=query or cached_research['filters']!= {'genre': genre, 'date': date, 'grade': grade, 'quick':quick, 'hide':hide}:
         results, total = research_book(query, genre, grade, date, quick)
+        print(len(results))
+        if hide:
+            all_books = (database.db.session.query(database.List, database.Book).join(database.List,database.Book.id == database.List.book_id).
+                         filter(database.List.user_id == user.id).all())
+            for b in all_books:
+                book = b[1]
+                if book in results:
+                    print('here')
+                    results.remove(book)
+        print(len(results))
         cached_research={
             'query': query,
-            'filters': {'genre': genre, 'date': date, 'grade': grade, 'quick':quick},
+            'filters': {'genre': genre, 'date': date, 'grade': grade, 'quick':quick, 'hide':hide},
             'results': results,
             'total': total,
         }
@@ -282,10 +292,10 @@ def search(nr):
     for b in cached_research['results'][60*(nr-1):60*nr]:
         author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
         if user:
-            blist[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id == user.id, database.List.list_name != "notsaved")).first()
+            blist[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id == user.id)).first()
 
     return flask.render_template("search.html.jinja2", query=query, nr=nr, results=cached_research['results'][60*(nr-1):60*nr], total=cached_research['total'], pages=pages, author=author,
-                                 blist=blist, genres=genres, genre=genre, date=date, grade=grade, quick=quick, user=user)
+                                 blist=blist, genres=genres, genre=genre, date=date, grade=grade, quick=quick, user=user, hide=hide)
 
 @app.route('/recommandation/<int:user_id>/<int:nr>')
 def recommandation(user_id, nr):
@@ -329,9 +339,9 @@ def recommandation(user_id, nr):
     blist = {}
     for b in cached_research['results'][60 * (nr - 1):60 * nr]:
         author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
-        blist[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id == user.id, database.List.list_name != "notsaved")).first()
+        blist[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id == user.id, database.List.list_name!= None)).first()
 
-    return flask.render_template("search.html.jinja2", query=cached_research['query'], nr=nr,
+    return flask.render_template("recommandations.html.jinja2", query=cached_research['query'], nr=nr,
                                  results=cached_research['results'][60 * (nr - 1):60 * nr],
                                  total=cached_research['total'], pages=pages, author=author,
                                  blist=blist, genres=genres, genre=None, date=None, grade=None, quick=None,
@@ -404,14 +414,22 @@ def save():
     user_id = data.get('user_id')
     book_id = data.get('book_id')
     command = data.get('command')
+    type = data.get('type')
     if user_id and book_id:
         user_id = int(user_id)
         book_id = int(book_id)
-        if command=="add":
-            database.add_book_to_list(book_id, user_id)
+        if type=="save":
+            if command=="add":
+                database.add_book_to_list(book_id, user_id)
+            else:
+                database.remove_book_from_list(book_id, user_id)
         else:
-            database.remove_book_from_list(book_id, user_id)
+            if command == "add":
+                database.mark_as_read(book_id, user_id)
+            else:
+                database.unmark_as_read(book_id, user_id)
     return {'message': 'save changed'}, 200
+
 
 @app.route('/deleteComment', methods=['POST'])
 def deleteComment():

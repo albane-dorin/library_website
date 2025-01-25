@@ -50,16 +50,21 @@
                 </div>
                 <div style="display: none" class="filter-container" id="filter">
                     <div class="filter">
-                    Genres:
-                    <div class="genre">
-                        {% for g in genres %}
-                            <div class="checkboxgenre">
-                                    <input type="checkbox" id="{{ g }}" class="checkbox" name="genre" value="{{ g }}" {% if genre and g.split(',')[0].split('-')[0] in genre %} checked {% endif %}><br>
-                                <label> {{ g }}</label>
-                            </div>
-                        {% endfor %}
+                    <div>
+                        Genres:
+                        <div class="genre">
+                            {% for g in genres %}
+                                <div class="checkboxgenre">
+                                        <input type="checkbox" id="{{ g }}" class="checkbox" name="genre" value="{{ g }}" {% if genre and g.split(',')[0].split('-')[0] in genre %} checked {% endif %}><br>
+                                    <label> {{ g }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="checkboxgenre">
+                            <input type="checkbox" id="read" class="checkbox" name="read" {% if hide %} checked {% endif %}><br>
+                            <label>Don't show book marked as read</label>
+                        </div>
                     </div>
-
                     <div class="grade-date">
                         <div>
                             Grade:
@@ -198,6 +203,7 @@
         let grade = document.getElementById('note-slider').value;
         let gradeComp = document.getElementById('gradecomp').value;
         let date = document.getElementById('year').value;
+        let hide_read = document.getElementById('read').checked;
 
         if (selected_genres!='') {
             url.searchParams.append('genre', selected_genres);
@@ -210,6 +216,9 @@
             url.searchParams.append('user_id', user);
         }
         url.searchParams.append('grade', grade+'/'+gradeComp);
+        if(hide_read){
+            url.searchParams.append('hide', 'true')
+        }
 
         window.location.href = url.toString();
     }
@@ -347,29 +356,30 @@
         }
     }
 
-    function changeSave(user_id, book_id, s){
-            const book = book_id
-            const user = user_id
-            fetch('/save', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ user_id: user, book_id: book, command: s })
-            })
-            .then(response => {
-                if (response.ok) {
-                    console.log("Data sent successfully.");
-                    window.location.reload()
+    function changeSave(user_id, book_id, s, type){
+        const book = book_id
+        const user = user_id
+        fetch('/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ user_id: user, book_id: book, command: s, type: type })
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log("Data sent successfully.");
+                window.location.reload()
 
-                } else {
-                    console.error("Failed to send data.");
-                }
-            })
-            .catch(error => {
-                console.error("Error:", error);
-            });
-        };
+            } else {
+                console.error("Failed to send data.");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+        });
+    }
+
 
     function showOption(id, s){
         const button = document.getElementById('more_button' + id);

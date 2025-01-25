@@ -106,7 +106,7 @@ input:focus{
 .filter{
     width: 840px;
     max-width: 100%;
-    height: 230px;
+    height: 250px;
     background-color: #e7a878;
     border-radius: 20px;
     margin-top: 1em;
@@ -119,7 +119,7 @@ input:focus{
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;
-    height: 90%;
+    height: 80%;
     width: 480px;
     border-right: black 1px solid;
     padding-right: 20px;

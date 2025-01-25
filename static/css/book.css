@@ -57,14 +57,18 @@ img{
     font-size: 1.5em;
 }
 
-.add_list{
+.add{
     padding: 0;
-    margin-right: 60px;
+    margin: 0 5px
 }
 
-.add_list>img{
+.add>img{
     height: 50px;
     margin: 0;
+}
+
+.list{
+    margin-right: 60px;
 }
 
 
