@@ -198,11 +198,8 @@ def home():
     b_list= {}
     for b in recents:
         r_author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
-        if user:
-            r_list[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id==user.id, database.List.list_name!=None)).first()
     for b in best:
         b_author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
-        r_list[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id == user.id, database.List.list_name!=None)).first()
     return flask.render_template('home.html.jinja2', recents=recents, r_author =r_author , best=best, b_author=b_author, r_list=r_list, b_list=b_list, genres=genres, user=user)
 
 
