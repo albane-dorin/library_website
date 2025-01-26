@@ -63,33 +63,35 @@ class List(db.Model):
     is_read = db.Column(db.Boolean)
 
 
-def peupler():
+def peupler(file):
     try:
-        # Connexion à la base PostgreSQL
-        conn = psycopg2.connect(
-            "postgresql://bookhaven_qxlx_user:iim0rXsw1OJVy4efmBLECKbG59U1yeI9@dpg-cuaqottumphs73cn4r7g-a/bookhaven_qxlx"
-        )
-        cursor = conn.cursor()
+        # Connexion à la base de données
+        conn = psycopg2.connect("postgresql://bookhaven_qxlx_user:iim0rXsw1OJVy4efmBLECKbG59U1yeI9@dpg-cuaqottumphs73cn4r7g-a.singapore-postgres.render.com/bookhaven_qxlx?sslmode=require")
+        cur = conn.cursor()
 
-        # Lire le contenu du fichier SQL
-        with open('/postgresql_dump.sql', 'r') as f:
-            sql = f.read()
+        # Lecture du contenu du fichier SQL
+        with open(file, 'r', encoding='utf-8') as sql_file:
+            sql_content = sql_file.read()
 
-        # Exécuter le SQL
-        cursor.execute(sql)
+        # Exécution des instructions SQL
+        cur.execute(sql_content)
+
+        # Validation des modifications
         conn.commit()
+        print("Base de données peuplée avec succès !")
 
-        print("Fichier SQL exécuté avec succès.")
-
-    except Exception as e:
-        print(f"Erreur lors de l'exécution du fichier SQL : {e}")
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(f"Erreur lors du peuplement de la base de données : {error}")
+        conn.rollback()  # Annuler les changements en cas d'erreur
 
     finally:
-        # Fermer la connexion
-        if cursor:
-            cursor.close()
+        # Fermeture des connexions
+        if cur:
+            cur.close()
         if conn:
             conn.close()
+
+
 
 def new_user(username, password, mail):
     user = User(username=username, password=password, email=mail)
@@ -115,7 +117,7 @@ def add_book_to_list(book_id, user_id):
 
 def remove_book_from_list(book_id, user_id):
     book_list = db.session.query(List).filter(and_(List.book_id==book_id, List.user_id==user_id)).first()
-    if book_list.grade:
+    if book_list.grade!=None or book_list.is_read:
         book_list.list_name = None
         book_list.date = None
         db.session.commit()
@@ -140,6 +142,7 @@ def add_grade(user_id, book_id, grade):
 def mark_as_read(book_id, user_id):
     book_list = db.session.query(List).filter(and_(List.book_id==book_id, List.user_id==user_id)).first()
     if book_list:
+        print(book_list)
         book_list.is_read = True
         db.session.commit()
     else:
@@ -149,7 +152,8 @@ def mark_as_read(book_id, user_id):
 
 def unmark_as_read(book_id, user_id):
     book_list = db.session.query(List).filter(and_(List.book_id == book_id, List.user_id == user_id)).first()
-    if book_list.grade or book_list.list_name:
+    print(book_list)
+    if book_list.grade!=None or book_list.list_name!=None:
         book_list.is_read = False
         db.session.commit()
     else:

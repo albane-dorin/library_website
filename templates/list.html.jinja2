@@ -45,7 +45,14 @@
             <div class="book_info">
                 <div class="book_header">
                     <a href="{{ url_for('close_up', book_id=b[1].id, user_id=user.id) }}" class="title">{{ b[1].title }}</a>
-                    <img src="{{ url_for('static', filename="img/more-button.png") }}">
+                    <img id="more_button{{ b[1].id }}" src="{{ url_for('static', filename="img/more-button.png") }}" onclick="showOption({{ b[1].id }}, '')" class="clickable">
+                    <div class="more_menu hidden" id="more_menu{{ b[1].id }}">
+                    {% if b[0].is_read %}
+                        <div class="menu-option" onclick="changeSave({{ user.id }}, {{ b[1].id }}, 'remove', 'read')">Unmark as read</div>
+                    {% else %}
+                        <div class="menu-option" onclick="changeSave({{ user.id }}, {{ b[1].id }}, 'add', 'read')">Mark as read</div>
+                    {% endif %}
+                    </div>
                 </div>
                 <div class="list_genre">
                     {% for g in b[1].genres.split(';')[:-1] %}

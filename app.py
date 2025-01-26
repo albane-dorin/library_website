@@ -10,10 +10,10 @@ import database.database as database
 
 app = Flask(__name__)
 
-DATABASE_URL = os.getenv('DATABASE_URL')
+#DATABASE_URL = os.getenv('DATABASE_URL')
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://bookhaven_qxlx_user:iim0rXsw1OJVy4efmBLECKbG59U1yeI9@dpg-cuaqottumphs73cn4r7g-a.singapore-postgres.render.com/bookhaven_qxlx?sslmode=require"
 #app.config['SQLALCHEMY_DATABASE_URI'] = (f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"f"@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -22,7 +22,6 @@ database.db.init_app(app) # (1) flask prend en compte la base de donnee
 
 with app.test_request_context(): # (2) bloc exécuté à l'initialisation de Flaskx
  database.init_database()
- database.peupler()
  genres = database.list_genres()
 
 
@@ -192,19 +191,16 @@ def home():
     if user:
         user = database.db.session.query(database.User).filter(database.User.id == user).first()
 
-    recents = database.db.session.query(database.Book).order_by(database.Book.date.desc())[:50]
-    best = database.db.session.query(database.Book).order_by(database.Book.grade.desc())[:50]
+    recents = database.db.session.query(database.Book).filter(database.Book.date!=None).order_by(database.Book.date.desc())[:50]
+    best = database.db.session.query(database.Book).filter(database.Book.grade!=None).order_by(database.Book.grade.desc())[:50]
     r_author = {}
     b_author = {}
     r_list = {}
     b_list= {}
     for b in recents:
         r_author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
-        if user:
-            r_list[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id==user.id, database.List.list_name!=None)).first()
     for b in best:
         b_author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
-        r_list[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id == user.id, database.List.list_name!=None)).first()
     return flask.render_template('home.html.jinja2', recents=recents, r_author =r_author , best=best, b_author=b_author, r_list=r_list, b_list=b_list, genres=genres, user=user)
 
 
@@ -389,7 +385,7 @@ def book_list(user_id):
     type = flask.request.args.get('type')
     books = (database.db.session.query(database.List, database.Book).
              join(database.List, database.Book.id==database.List.book_id).
-             filter(database.List.user_id==user.id))
+             filter(and_(database.List.user_id==user.id), database.List.list_name!=None))
     if order=='desc':
         if type=='grade':
             books = books.order_by(database.List.grade, database.List.date).all()
