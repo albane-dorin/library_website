@@ -297,13 +297,13 @@ def search(nr):
     return flask.render_template("search.html.jinja2", query=query, nr=nr, results=cached_research['results'][60*(nr-1):60*nr], total=cached_research['total'], pages=pages, author=author,
                                  blist=blist, genres=genres, genre=genre, date=date, grade=grade, quick=quick, user=user, hide=hide)
 
-@app.route('/recommandation/<int:user_id>/<int:nr>')
-def recommandation(user_id, nr):
+@app.route('/recommendation/<int:user_id>/<int:nr>')
+def recommendation(user_id, nr):
     user = database.db.session.query(database.User).filter(database.User.id == user_id).first()
 
     global cached_research
 
-    if cached_research['query'] != 'recommandations':
+    if cached_research['query'] != 'recommendations':
         all_books = (database.db.session.query(database.List, database.Book).join(database.List, database.Book.id==database.List.book_id).
                      filter(database.List.user_id == user_id).all())
         book_list = (database.db.session.query(database.List, database.Book).join(database.List, database.Book.id==database.List.book_id).
@@ -329,7 +329,7 @@ def recommandation(user_id, nr):
                 if has_genre and add:
                     results.append(sim_book)
         cached_research = {
-            'query': 'recommandations',
+            'query': 'recommendations',
             'filters': {},
             'results': results,
             'total': len(results),
@@ -341,7 +341,7 @@ def recommandation(user_id, nr):
         author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
         blist[b.id] = database.db.session.query(database.List).filter(and_(database.List.book_id == b.id, database.List.user_id == user.id, database.List.list_name!= None)).first()
 
-    return flask.render_template("recommandations.html.jinja2", query=cached_research['query'], nr=nr,
+    return flask.render_template("recommendations.html.jinja2", query=cached_research['query'], nr=nr,
                                  results=cached_research['results'][60 * (nr - 1):60 * nr],
                                  total=cached_research['total'], pages=pages, author=author,
                                  blist=blist, genres=genres, genre=None, date=None, grade=None, quick=None,

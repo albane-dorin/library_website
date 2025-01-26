@@ -14,8 +14,8 @@
                     <div class="search-title">
                         {% if quick %}
                         {{ quick }} books:
-                        {% elif query=='recommandations' %}
-                            {{ query }}:
+                        {% elif query=='recommendations' %}
+                            {{ query[0]|upper }}{{ query[1:] }}:
                         {% else %}
                         Result for "{{ query }}":
                         {% endif %}
