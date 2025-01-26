@@ -4,7 +4,7 @@ import json
 import random
 from datetime import datetime, timedelta, date
 from sqlalchemy import Index, func, update, select, and_
-import sys
+import psycopg2
 
 
 db = SQLAlchemy()
@@ -62,6 +62,34 @@ class List(db.Model):
     date = db.Column(db.Date)
     is_read = db.Column(db.Boolean)
 
+
+def peupler():
+    try:
+        # Connexion à la base PostgreSQL
+        conn = psycopg2.connect(
+            "postgresql://bookhaven_qxlx_user:iim0rXsw1OJVy4efmBLECKbG59U1yeI9@dpg-cuaqottumphs73cn4r7g-a/bookhaven_qxlx"
+        )
+        cursor = conn.cursor()
+
+        # Lire le contenu du fichier SQL
+        with open('/postgresql_dump.sql', 'r') as f:
+            sql = f.read()
+
+        # Exécuter le SQL
+        cursor.execute(sql)
+        conn.commit()
+
+        print("Fichier SQL exécuté avec succès.")
+
+    except Exception as e:
+        print(f"Erreur lors de l'exécution du fichier SQL : {e}")
+
+    finally:
+        # Fermer la connexion
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 def new_user(username, password, mail):
     user = User(username=username, password=password, email=mail)

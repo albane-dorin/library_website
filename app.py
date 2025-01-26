@@ -12,6 +12,7 @@ app = Flask(__name__)
 
 DATABASE_URL = os.getenv('DATABASE_URL')
 
+
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 #app.config['SQLALCHEMY_DATABASE_URI'] = (f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"f"@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -21,6 +22,7 @@ database.db.init_app(app) # (1) flask prend en compte la base de donnee
 
 with app.test_request_context(): # (2) bloc exécuté à l'initialisation de Flaskx
  database.init_database()
+ database.peupler()
  genres = database.list_genres()
 
 
