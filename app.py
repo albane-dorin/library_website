@@ -14,7 +14,7 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config)['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 database.db.init_app(app) # (1) flask prend en compte la base de donnee
 
