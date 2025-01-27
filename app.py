@@ -10,11 +10,10 @@ import database.database as database
 
 app = Flask(__name__)
 
-#DATABASE_URL = os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv('DATABASE_URL')
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://bookhaven_qxlx_user:iim0rXsw1OJVy4efmBLECKbG59U1yeI9@dpg-cuaqottumphs73cn4r7g-a.singapore-postgres.render.com/bookhaven_qxlx?sslmode=require"
-#app.config['SQLALCHEMY_DATABASE_URI'] = (f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"f"@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}")
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 database.db.init_app(app) # (1) flask prend en compte la base de donnee
