@@ -45,7 +45,7 @@ class Book(db.Model):
 
 class Comment(db.Model):
     __tablename__ = 'comments'
-    id = db.Column(db.Integer, primary_key = True)
+    id = db.Column(db.Integer, primary_key = True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     book_id = db.Column(db.Integer, db.ForeignKey('books.id'))
     content = db.Column(db.Text)
@@ -54,7 +54,7 @@ class Comment(db.Model):
 
 class List(db.Model):
     __tablename__ = 'lists'
-    id = db.Column(db.Integer, primary_key = True)
+    id = db.Column(db.Integer, primary_key = True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     book_id = db.Column(db.Integer, db.ForeignKey('books.id'))
     list_name = db.Column(db.Text)
@@ -106,7 +106,7 @@ def delete_user(id):
 
 def add_book_to_list(book_id, user_id):
     book_list = db.session.query(List).filter(and_(List.book_id==book_id, List.user_id==user_id, List.list_name==None)).first()
-    if book_list:
+    if book_list!=None:
         book_list.list_name = "My books"
         book_list.date = date.today()
         db.session.commit()
@@ -129,7 +129,7 @@ def remove_book_from_list(book_id, user_id):
 
 def add_grade(user_id, book_id, grade):
     book_list = db.session.query(List).filter(and_(List.book_id==book_id, List.user_id==user_id)).first()
-    if book_list:
+    if book_list!=None:
         book_list.grade = grade
         db.session.commit()
     else:
@@ -141,7 +141,7 @@ def add_grade(user_id, book_id, grade):
 
 def mark_as_read(book_id, user_id):
     book_list = db.session.query(List).filter(and_(List.book_id==book_id, List.user_id==user_id)).first()
-    if book_list:
+    if book_list!=None:
         print(book_list)
         book_list.is_read = True
         db.session.commit()

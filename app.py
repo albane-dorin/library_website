@@ -86,9 +86,9 @@ def form_valide(form, i):  # 0 pour connexion, 1 pour inscription
 def research_book(query, genre, grade, date, quick):
     if quick:
         if quick == 'Best':
-            result = database.db.session.query(database.Book).order_by(database.Book.grade.desc()).all()
+            result = database.db.session.query(database.Book).filter(database.Book.grade!=None).order_by(database.Book.grade.desc()).all()
         elif quick == 'New':
-            result = database.db.session.query(database.Book).order_by(database.Book.date.desc()).all()
+            result = database.db.session.query(database.Book).filter(database.Book.date!=None).order_by(database.Book.date.desc()).all()
         elif quick == 'Romance':
             genre = 'romance/'
             result = database.db.session.query(database.Book).all()
@@ -201,7 +201,8 @@ def home():
         r_author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
     for b in best:
         b_author[b.author_id] = database.db.session.query(database.Author.complete_name).filter(database.Author.id == b.author_id).first()
-    return flask.render_template('home.html.jinja2', recents=recents, r_author =r_author , best=best, b_author=b_author, r_list=r_list, b_list=b_list, genres=genres, user=user)
+    return flask.render_template('home.html.jinja2', recents=recents, r_author =r_author , best=best, b_author=b_author,
+                                 r_list=r_list, b_list=b_list, genres=genres, user=user)
 
 
 @app.route('/connexion', methods=["GET", "POST"])
