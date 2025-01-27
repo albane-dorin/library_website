@@ -72,7 +72,7 @@ def form_valide(form, i):  # 0 pour connexion, 1 pour inscription
             if user.username == username:
                 result = False
                 errors += ["This username already exists, please choose another one"]
-            elif user.mail == email:
+            elif user.email == email:
                 result = False
                 errors += ["This email cannot be used"]
 
