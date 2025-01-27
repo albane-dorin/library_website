@@ -44,7 +44,7 @@
     <div class="main">
         <div class="search_bar">
                 <div class="top">
-                    <input type="search" id="query" name="query" {% if query %} value="{{ query }}" {% endif %} placeholder="Enter a title">
+                    <input type="search" id="query" name="query" {% if query and query!="recommendations" %} value="{{ query }}" {% endif %} placeholder="Enter a title">
                     <button style="display: flex" class="buttonfilter" id="showfilter" onclick="changeClasses('show')"> Show more filter </button>
                     <button style="display: none" class="buttonfilter" id="hidefilter" onclick="changeClasses('hid')"> Hid more filter </button>
                 </div>
